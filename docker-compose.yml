@@ -1,0 +1,113 @@
+name: vikrm
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vikrm-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - vikrm_ollama_data:/root/.ollama
+    networks:
+      - vikrm-network
+    # GPU acceleration (uncomment if running on a machine with an NVIDIA GPU + nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  mysql:
+    image: mysql:8.0
+    container_name: vikrm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vikrm}
+      MYSQL_USER: ${MYSQL_USER:-vikrm}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vikrm_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - vikrm_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - vikrm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: vikrm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - vikrm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - vikrm-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vikrm-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      OLLAMA_BASE_URL: http://ollama:11434
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - vikrm_chroma_data:/app/data/chroma
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    networks:
+      - vikrm-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vikrm-frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - vikrm-network
+
+networks:
+  vikrm-network:
+    driver: bridge
+
+volumes:
+  vikrm_mysql_data:
+  vikrm_redis_data:
+  vikrm_ollama_data:
+  vikrm_chroma_data:

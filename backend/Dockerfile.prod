@@ -1,0 +1,50 @@
+# Production backend image.
+#
+# Differs from the dev Dockerfile in three ways that matter for a real
+# deployment: (1) multi-stage build so build-only tools (compilers,
+# headers) never ship in the final image, (2) runs as a non-root user,
+# (3) no --reload flag and multiple uvicorn workers instead of one.
+
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    default-libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# --- Final stage ---
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Runtime-only system deps (no compilers) — the mysqlclient shared lib
+# is still needed at runtime even though the build tools that compiled
+# against it are not.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libmariadb3 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --shell /bin/bash vikrm
+
+COPY --from=builder /root/.local /home/vikrm/.local
+COPY --chown=vikrm:vikrm . .
+
+USER vikrm
+ENV PATH=/home/vikrm/.local/bin:$PATH
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# 4 workers is a reasonable default for a small-to-medium single-host
+# deployment; scale via WEB_CONCURRENCY env var or a process manager
+# in front of this container for larger deployments.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${WEB_CONCURRENCY:-4}"]
