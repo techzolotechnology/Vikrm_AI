@@ -20,7 +20,7 @@ import httpx
 
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.services.llm.base import ChatMessage, LLMProvider, ProviderError
+from app.services.llm.base import ChatMessage, LLMProvider, ProviderError, normalize_content_chunk
 
 logger = get_logger(__name__)
 
@@ -88,7 +88,9 @@ class OpenAICompatibleProvider(LLMProvider):
                                     .get("content", "")
                                 )
                                 if delta:
-                                    yield delta
+                                    norm_delta = normalize_content_chunk(delta)
+                                    if norm_delta:
+                                        yield norm_delta
                             except json.JSONDecodeError:
                                 continue
         except httpx.ConnectError as exc:
@@ -146,8 +148,18 @@ class MistralProvider(OpenAICompatibleProvider):
         super().__init__(
             provider_name="mistral",
             base_url="https://api.mistral.ai/v1",
-            api_key_getter=lambda: settings.MISTRAL_API_KEY,
+            api_key_getter=lambda: getattr(settings, "MISTRAL_API_KEY", None),
             default_model="mistral-large-latest",
+        )
+
+
+class QwenProvider(OpenAICompatibleProvider):
+    def __init__(self) -> None:
+        super().__init__(
+            provider_name="qwen",
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            api_key_getter=lambda: getattr(settings, "QWEN_API_KEY", None),
+            default_model="qwen-max",
         )
 
 
@@ -204,7 +216,9 @@ class AnthropicProvider(LLMProvider):
                                 if event_type == "content_block_delta":
                                     text = chunk.get("delta", {}).get("text", "")
                                     if text:
-                                        yield text
+                                        norm_text = normalize_content_chunk(text)
+                                        if norm_text:
+                                            yield norm_text
                             except json.JSONDecodeError:
                                 continue
         except httpx.ConnectError as exc:
@@ -256,7 +270,9 @@ class GeminiProvider(LLMProvider):
                                     for part in parts:
                                         text = part.get("text", "")
                                         if text:
-                                            yield text
+                                            norm_text = normalize_content_chunk(text)
+                                            if norm_text:
+                                                yield norm_text
                             except json.JSONDecodeError:
                                 continue
         except httpx.ConnectError as exc:

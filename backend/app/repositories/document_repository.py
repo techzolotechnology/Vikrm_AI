@@ -43,6 +43,11 @@ class DocumentRepository:
         document.error = error
         await self._session.flush()
 
+    async def rename(self, document: Document, new_filename: str) -> Document:
+        document.filename = new_filename
+        await self._session.flush()
+        return document
+
     async def delete(self, document: Document) -> None:
         await self._session.delete(document)
         await self._session.flush()

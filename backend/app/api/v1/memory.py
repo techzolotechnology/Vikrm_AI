@@ -1,9 +1,7 @@
 """
-Memory endpoints: CRUD plus a semantic search endpoint used both by
-the frontend Memory Viewer and internally by ChatService to surface
-relevant memories during a conversation.
+Memory endpoints: CRUD, type filtering, pinning, archiving, and semantic search.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -15,6 +13,7 @@ from app.schemas.memory import (
     MemoryResponse,
     MemorySearchRequest,
     MemorySearchResult,
+    UpdateMemoryRequest,
 )
 from app.services.memory_service import MemoryService
 
@@ -23,10 +22,19 @@ router = APIRouter(prefix="/memories", tags=["Memory"])
 
 @router.get("", response_model=list[MemoryResponse])
 async def list_memories(
-    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    memory_type: str | None = Query(None),
+    is_archived: bool | None = Query(False),
+    is_pinned: bool | None = Query(None),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> list[MemoryResponse]:
     service = MemoryService(db)
-    memories = await service.list_memories(user_id=user.id)
+    memories = await service.list_memories(
+        user_id=user.id,
+        memory_type=memory_type,
+        is_archived=is_archived,
+        is_pinned=is_pinned,
+    )
     return [MemoryResponse.model_validate(m) for m in memories]
 
 
@@ -46,9 +54,36 @@ async def create_memory(
 
     service = MemoryService(db)
     memory = await service.create_memory(
-        user_id=user.id, content=body.content, memory_type=memory_type, agent_id=body.agent_id
+        user_id=user.id,
+        content=body.content,
+        memory_type=memory_type,
+        agent_id=body.agent_id,
+        is_pinned=body.is_pinned,
     )
     return MemoryResponse.model_validate(memory)
+
+
+@router.patch("/{memory_id}", response_model=MemoryResponse)
+async def update_memory(
+    memory_id: int,
+    body: UpdateMemoryRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> MemoryResponse:
+    service = MemoryService(db)
+    memory_type_enum = MemoryType(body.memory_type) if body.memory_type else None
+    try:
+        updated = await service.update_memory(
+            memory_id=memory_id,
+            user_id=user.id,
+            content=body.content,
+            memory_type=memory_type_enum,
+            is_pinned=body.is_pinned,
+            is_archived=body.is_archived,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return MemoryResponse.model_validate(updated)
 
 
 @router.post("/search", response_model=list[MemorySearchResult])

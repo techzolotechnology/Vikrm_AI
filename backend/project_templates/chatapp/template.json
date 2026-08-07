@@ -1,0 +1,14 @@
+{
+  "key": "chatapp",
+  "title": "Real-Time Collaborative Chat & Messaging App",
+  "description": "WebSocket messaging app with direct chats, group rooms, and status indicators.",
+  "category": "domain",
+  "language": "typescript",
+  "framework": "react",
+  "structure": [
+    "src/components/ChatRoom.tsx",
+    "src/services/socket.ts",
+    "package.json",
+    "README.md"
+  ]
+}

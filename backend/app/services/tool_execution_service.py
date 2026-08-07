@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tool_execution import ToolExecution, ToolExecutionStatus
 from app.repositories.tool_execution_repository import ToolExecutionRepository
+from app.services.llm.base import ensure_chat_response
 from app.services.tools.base import ToolContext, ToolError
 from app.services.tools.registry import get_tool
 
@@ -33,7 +34,8 @@ class ToolExecutionService:
 
         try:
             tool = get_tool(tool_name)
-            output = await tool.run(input_text, context=context)
+            raw_output = await tool.run(input_text, context=context)
+            output = ensure_chat_response(raw_output)
             status = ToolExecutionStatus.SUCCESS
             error = None
         except ToolError as exc:

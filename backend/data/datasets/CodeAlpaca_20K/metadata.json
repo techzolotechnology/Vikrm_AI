@@ -1,0 +1,12 @@
+{
+  "dataset_name": "CodeAlpaca_20K",
+  "hf_path": "HuggingFaceH4/CodeAlpaca_20K",
+  "description": "20K instruction-following code tasks.",
+  "language": "python",
+  "framework": "general",
+  "document_count": 7,
+  "size_bytes": 4420,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\CodeAlpaca_20K\\index"
+}

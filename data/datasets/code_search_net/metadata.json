@@ -1,0 +1,12 @@
+{
+  "dataset_name": "code_search_net",
+  "hf_path": "code_search_net",
+  "description": "CodeSearchNet dataset for code retrieval and semantic search.",
+  "language": "python",
+  "framework": "standard",
+  "document_count": 500,
+  "size_bytes": 1666435,
+  "status": "downloaded",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\code_search_net\\index"
+}

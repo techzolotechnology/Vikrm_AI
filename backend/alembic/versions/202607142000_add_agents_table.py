@@ -51,14 +51,14 @@ def upgrade() -> None:
     op.create_index("ix_agents_user_id", "agents", ["user_id"])
 
     op.add_column("conversations", sa.Column("agent_id", sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        "fk_conversations_agent_id",
-        "conversations",
-        "agents",
-        ["agent_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    with op.batch_alter_table("conversations") as batch_op:
+        batch_op.create_foreign_key(
+            "fk_conversations_agent_id",
+            "agents",
+            ["agent_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
     op.create_index("ix_conversations_agent_id", "conversations", ["agent_id"])
 
 

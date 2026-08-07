@@ -18,30 +18,28 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. Alter users table for email/password auth
-    op.alter_column("users", "google_sub", existing_type=sa.String(255), nullable=True)
-    
     auth_provider_enum = sa.Enum("GOOGLE", "EMAIL", name="authprovider")
     auth_provider_enum.create(op.get_bind(), checkfirst=True)
-    
-    op.add_column(
-        "users",
-        sa.Column(
-            "auth_provider",
-            auth_provider_enum,
-            nullable=False,
-            server_default="GOOGLE",
-        ),
-    )
-    op.add_column("users", sa.Column("password_hash", sa.String(255), nullable=True))
-    op.add_column(
-        "users",
-        sa.Column(
-            "email_verified",
-            sa.Boolean(),
-            nullable=False,
-            server_default=sa.false(),
-        ),
-    )
+
+    with op.batch_alter_table("users") as batch_op:
+        batch_op.alter_column("google_sub", existing_type=sa.String(255), nullable=True)
+        batch_op.add_column(
+            sa.Column(
+                "auth_provider",
+                auth_provider_enum,
+                nullable=False,
+                server_default="GOOGLE",
+            )
+        )
+        batch_op.add_column(sa.Column("password_hash", sa.String(255), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                "email_verified",
+                sa.Boolean(),
+                nullable=False,
+                server_default=sa.false(),
+            )
+        )
 
     # 2. Create email_verification_tokens table
     op.create_table(

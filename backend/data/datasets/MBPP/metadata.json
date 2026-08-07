@@ -1,0 +1,12 @@
+{
+  "dataset_name": "MBPP",
+  "hf_path": "google-research-datasets/mbpp",
+  "description": "Mostly Basic Python Problems (MBPP).",
+  "language": "python",
+  "framework": "benchmarks",
+  "document_count": 7,
+  "size_bytes": 4004,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\MBPP\\index"
+}

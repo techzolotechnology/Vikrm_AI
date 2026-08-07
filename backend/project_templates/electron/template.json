@@ -1,0 +1,15 @@
+{
+  "key": "electron",
+  "title": "Electron Cross-Platform Desktop Application",
+  "description": "Desktop app starter with Electron and React frontend.",
+  "category": "desktop",
+  "language": "typescript",
+  "framework": "electron",
+  "structure": [
+    "main.js",
+    "preload.js",
+    "index.html",
+    "package.json",
+    "README.md"
+  ]
+}

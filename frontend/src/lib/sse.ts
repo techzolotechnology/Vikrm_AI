@@ -4,27 +4,31 @@ interface StreamEvent {
   delta?: string;
   error?: string;
   done?: boolean;
+  title?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
 /**
  * POSTs to an SSE endpoint and yields parsed events as they arrive.
- * Uses raw `fetch` (not axios) since axios doesn't support incremental
- * ReadableStream consumption. Attaches the bearer token manually and
- * retries exactly once after a silent token refresh on 401, mirroring
- * the axios interceptor's behavior for regular requests.
+ *
+ * Performance notes:
+ * - Uses raw `fetch` with ReadableStream (Axios doesn't support chunked streaming)
+ * - Bearer token attached manually
+ * - Retries once on 401 with a silent token refresh
+ * - Graceful reader.read() error handling (server-side stream close)
  */
 export async function* streamSSE(
   path: string,
   body: unknown,
   signal?: AbortSignal,
 ): AsyncGenerator<StreamEvent> {
-  const doFetch = async (token: string | null) =>
+  const doFetch = (token: string | null) =>
     fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "text/event-stream",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(body),
@@ -42,30 +46,90 @@ export async function* streamSSE(
   }
 
   if (!response.ok || !response.body) {
-    throw new Error(`Request failed with status ${response.status}`);
+    let errorText = `Request failed with status ${response.status}`;
+    try {
+      const errData = await response.json();
+      if (errData?.detail) {
+        errorText =
+          typeof errData.detail === "string"
+            ? errData.detail
+            : JSON.stringify(errData.detail);
+      }
+    } catch {
+      // ignore parse error
+    }
+    throw new Error(errorText);
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n\n");
-    buffer = lines.pop() ?? "";
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) continue;
-      const jsonStr = trimmed.slice("data:".length).trim();
+  try {
+    while (true) {
+      let done = false;
+      let value: Uint8Array | undefined;
       try {
-        yield JSON.parse(jsonStr) as StreamEvent;
+        const result = await reader.read();
+        done = result.done;
+        value = result.value;
       } catch {
-        // Ignore malformed keep-alive/partial lines rather than crashing the stream.
+        // Stream reading interrupted or aborted
+        break;
       }
+      if (done || !value) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // Split on double-newline (SSE frame boundary)
+      const frames = buffer.split("\n\n");
+      buffer = frames.pop() ?? "";
+
+      for (const frame of frames) {
+        for (const line of frame.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const jsonStr = trimmed.slice("data:".length).trim();
+          if (!jsonStr) continue;
+          if (jsonStr === "[DONE]") {
+            yield { done: true };
+            return;
+          }
+          try {
+            const event = JSON.parse(jsonStr) as StreamEvent;
+            yield event;
+            if (event.done) return;
+          } catch {
+            // Ignore malformed keep-alive/partial frames
+          }
+        }
+      }
+    }
+
+    // Flush any remaining buffer content
+    if (buffer.trim()) {
+      for (const line of buffer.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const jsonStr = trimmed.slice("data:".length).trim();
+        if (!jsonStr) continue;
+        if (jsonStr === "[DONE]") {
+          yield { done: true };
+          return;
+        }
+        try {
+          yield JSON.parse(jsonStr) as StreamEvent;
+        } catch {
+          // ignore
+        }
+      }
+    }
+  } finally {
+    try {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    } catch {
+      // ignore releaseLock error if stream was closed
     }
   }
 }

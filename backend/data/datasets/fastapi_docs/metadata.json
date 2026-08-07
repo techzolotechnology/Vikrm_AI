@@ -1,0 +1,12 @@
+{
+  "dataset_name": "fastapi_docs",
+  "hf_path": "docs/fastapi",
+  "description": "Official FastAPI reference, OpenAPI integration, and async routes.",
+  "language": "python",
+  "framework": "fastapi",
+  "document_count": 7,
+  "size_bytes": 4336,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\fastapi_docs\\index"
+}

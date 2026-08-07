@@ -1,0 +1,14 @@
+{
+  "key": "erp",
+  "title": "Enterprise Resource Planning (ERP) Platform",
+  "description": "Full-scale ERP template for supply chain, HR, finance, and operations.",
+  "category": "domain",
+  "language": "typescript",
+  "framework": "react",
+  "structure": [
+    "src/modules/Finance.tsx",
+    "src/modules/SupplyChain.tsx",
+    "package.json",
+    "README.md"
+  ]
+}

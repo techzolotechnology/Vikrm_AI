@@ -1,0 +1,12 @@
+{
+  "dataset_name": "python_docs",
+  "hf_path": "docs/python",
+  "description": "Official Python 3.12 documentation and language spec.",
+  "language": "python",
+  "framework": "standard-library",
+  "document_count": 7,
+  "size_bytes": 4294,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\python_docs\\index"
+}

@@ -1,17 +1,9 @@
 """
-User model.
-
-Supports two authentication providers:
-- Google OAuth 2.0 (original, stable): identified by `google_sub`
-- Email/password (added): identified by hashed password with bcrypt
-
-`google_sub` is Google's stable, unique subject identifier for the
-account and is what we authenticate against for Google users, not email
-(emails can change). For email/password users, `google_sub` is NULL.
+User model with preferences JSON support.
 """
 import enum
 
-from sqlalchemy import Boolean, Enum, String
+from sqlalchemy import Boolean, Enum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -55,6 +47,7 @@ class User(Base, TimestampMixin):
         Enum(UserRole), default=UserRole.USER, nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    preferences: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email} role={self.role} provider={self.auth_provider}>"

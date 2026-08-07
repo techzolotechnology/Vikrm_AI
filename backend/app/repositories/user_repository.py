@@ -8,7 +8,7 @@ seam that would let us swap storage later without touching business logic.
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User, UserRole
+from app.models.user import AuthProvider, User, UserRole
 
 
 class UserRepository:
@@ -34,10 +34,12 @@ class UserRepository:
     async def create(
         self,
         *,
-        google_sub: str,
         email: str,
-        full_name: str | None,
-        avatar_url: str | None,
+        google_sub: str | None = None,
+        full_name: str | None = None,
+        avatar_url: str | None = None,
+        password_hash: str | None = None,
+        auth_provider: AuthProvider = AuthProvider.GOOGLE,
         role: UserRole = UserRole.USER,
     ) -> User:
         user = User(
@@ -45,12 +47,15 @@ class UserRepository:
             email=email,
             full_name=full_name,
             avatar_url=avatar_url,
+            password_hash=password_hash,
+            auth_provider=auth_provider,
             role=role,
         )
         self._session.add(user)
         await self._session.flush()
         await self._session.refresh(user)
         return user
+
 
     async def update_profile(
         self, user: User, *, full_name: str | None, avatar_url: str | None

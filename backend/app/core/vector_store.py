@@ -17,9 +17,16 @@ from chromadb.api.models.Collection import Collection
 from app.core.config import settings
 
 
+from chromadb.config import Settings as ChromaSettings
+
+
 @lru_cache
 def get_chroma_client() -> chromadb.ClientAPI:
-    return chromadb.PersistentClient(path=settings.CHROMA_PERSIST_DIR)
+    return chromadb.PersistentClient(
+        path=settings.CHROMA_PERSIST_DIR,
+        settings=ChromaSettings(anonymized_telemetry=False),
+    )
+
 
 
 class VectorStore:

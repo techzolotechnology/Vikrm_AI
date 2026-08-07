@@ -1,0 +1,13 @@
+{
+  "key": "flask",
+  "title": "Flask Lightweight REST API",
+  "description": "Python Flask micro-framework API template.",
+  "category": "backend",
+  "language": "python",
+  "framework": "flask",
+  "structure": [
+    "app.py",
+    "requirements.txt",
+    "README.md"
+  ]
+}

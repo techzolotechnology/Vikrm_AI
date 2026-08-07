@@ -1,3 +1,4 @@
+from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,9 +10,23 @@ class MemoryRepository:
         self._session = session
 
     async def create(
-        self, *, user_id: int, content: str, memory_type: MemoryType, agent_id: int | None = None
+        self,
+        *,
+        user_id: int,
+        content: str,
+        memory_type: MemoryType,
+        agent_id: int | None = None,
+        is_pinned: bool = False,
+        is_archived: bool = False,
     ) -> Memory:
-        memory = Memory(user_id=user_id, agent_id=agent_id, content=content, memory_type=memory_type)
+        memory = Memory(
+            user_id=user_id,
+            agent_id=agent_id,
+            content=content,
+            memory_type=memory_type,
+            is_pinned=is_pinned,
+            is_archived=is_archived,
+        )
         self._session.add(memory)
         await self._session.flush()
         await self._session.refresh(memory)
@@ -31,11 +46,46 @@ class MemoryRepository:
         )
         return list(result.scalars().all())
 
-    async def list_for_user(self, user_id: int) -> list[Memory]:
-        result = await self._session.execute(
-            select(Memory).where(Memory.user_id == user_id).order_by(Memory.created_at.desc())
-        )
-        return list(result.scalars().all())
+    async def list_for_user(
+        self,
+        user_id: int,
+        *,
+        memory_type: str | None = None,
+        is_archived: bool | None = False,
+        is_pinned: bool | None = None,
+    ) -> Sequence[Memory]:
+        stmt = select(Memory).where(Memory.user_id == user_id)
+
+        if is_archived is not None:
+            stmt = stmt.where(Memory.is_archived == is_archived)
+        if is_pinned is not None:
+            stmt = stmt.where(Memory.is_pinned == is_pinned)
+        if memory_type is not None:
+            stmt = stmt.where(Memory.memory_type == memory_type)
+
+        stmt = stmt.order_by(Memory.is_pinned.desc(), Memory.created_at.desc())
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
+
+    async def update(
+        self,
+        memory: Memory,
+        *,
+        content: str | None = None,
+        memory_type: MemoryType | None = None,
+        is_pinned: bool | None = None,
+        is_archived: bool | None = None,
+    ) -> Memory:
+        if content is not None:
+            memory.content = content
+        if memory_type is not None:
+            memory.memory_type = memory_type
+        if is_pinned is not None:
+            memory.is_pinned = is_pinned
+        if is_archived is not None:
+            memory.is_archived = is_archived
+        await self._session.flush()
+        return memory
 
     async def delete(self, memory: Memory) -> None:
         await self._session.delete(memory)

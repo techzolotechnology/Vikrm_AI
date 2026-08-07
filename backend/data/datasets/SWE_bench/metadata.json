@@ -1,0 +1,12 @@
+{
+  "dataset_name": "SWE_bench",
+  "hf_path": "princeton-nlp/SWE-bench",
+  "description": "SWE-bench software engineering tasks.",
+  "language": "python",
+  "framework": "software-engineering",
+  "document_count": 7,
+  "size_bytes": 4210,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\SWE_bench\\index"
+}

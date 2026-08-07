@@ -1,0 +1,16 @@
+{
+  "key": "nextjs",
+  "title": "Next.js 14 App Router Full-Stack Application",
+  "description": "Next.js 14 template with Server Actions, Tailwind CSS, TypeScript, and API routes.",
+  "category": "framework",
+  "language": "typescript",
+  "framework": "nextjs",
+  "structure": [
+    "app/page.tsx",
+    "app/layout.tsx",
+    "app/api/health/route.ts",
+    "package.json",
+    "next.config.js",
+    "README.md"
+  ]
+}

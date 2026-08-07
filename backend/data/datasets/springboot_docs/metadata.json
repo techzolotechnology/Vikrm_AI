@@ -1,0 +1,12 @@
+{
+  "dataset_name": "springboot_docs",
+  "hf_path": "docs/springboot",
+  "description": "Spring Boot microservices, Spring Data JPA, and REST patterns.",
+  "language": "java",
+  "framework": "springboot",
+  "document_count": 7,
+  "size_bytes": 4462,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\springboot_docs\\index"
+}

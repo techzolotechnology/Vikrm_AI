@@ -1,0 +1,13 @@
+{
+  "key": "flutter",
+  "title": "Flutter Cross-Platform Mobile App",
+  "description": "iOS and Android mobile app with Material 3 UI.",
+  "category": "mobile",
+  "language": "dart",
+  "framework": "flutter",
+  "structure": [
+    "lib/main.dart",
+    "pubspec.yaml",
+    "README.md"
+  ]
+}

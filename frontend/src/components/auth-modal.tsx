@@ -199,7 +199,6 @@ function PasswordStrengthMeter({ password }: { password: string }) {
       exit={{ opacity: 0, height: 0 }}
       className="space-y-2 overflow-hidden"
     >
-      {/* Bars */}
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((i) => (
           <div
@@ -217,7 +216,6 @@ function PasswordStrengthMeter({ password }: { password: string }) {
         </span>
         <span className="text-[10px] text-white/30">{score}/5</span>
       </div>
-      {/* Rules */}
       <div className="grid grid-cols-1 gap-1">
         {PASSWORD_RULES.map((rule) => {
           const ok = rule.test(password);
@@ -235,6 +233,19 @@ function PasswordStrengthMeter({ password }: { password: string }) {
       </div>
     </motion.div>
   );
+}
+
+// ─── Helper function for error parsing ─────────────────────────────────────────
+
+function parseAuthError(err: unknown): string {
+  const axiosErr = err as { code?: string; response?: { data?: { detail?: string } }; message?: string };
+  if (axiosErr?.response?.data?.detail) {
+    return axiosErr.response.data.detail;
+  }
+  if (axiosErr?.code === "ERR_NETWORK" || !axiosErr?.response) {
+    return "Cannot connect to Vikrm backend API. Please verify backend server status.";
+  }
+  return axiosErr?.message ?? "Authentication failed. Please try again.";
 }
 
 // ─── Sign In View ──────────────────────────────────────────────────────────────
@@ -259,28 +270,21 @@ function SignInView({
   const [globalError, setGlobalError] = useState("");
 
   const handleGoogleSuccess = (res: CredentialResponse) => {
-    console.log("[Auth] Google account selection completed. Credential received from Google Identity Services.");
     if (!res.credential) {
-      console.warn("[Auth Error] No Google credential present in response.");
       setGlobalError("No Google ID token credential received.");
       return;
     }
     setGlobalError("");
     googleSignIn.mutate(res.credential, {
       onSuccess: () => {
-        console.log("[Auth] Redirecting to dashboard...");
         onClose();
-        navigate("/", { replace: true });
+        navigate("/dashboard", { replace: true });
       },
       onError: (err: unknown) => {
-        const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-        console.error("[Auth Error] Google sign-in failed:", msg ?? err);
-        setGlobalError(msg ?? "Google sign-in failed. Please verify your connection.");
+        setGlobalError(parseAuthError(err));
       },
     });
   };
-
-
 
   const validateEmail = useCallback((v: string) => {
     if (!v) return "Email is required";
@@ -302,11 +306,10 @@ function SignInView({
       {
         onSuccess: () => {
           onClose();
-          navigate("/", { replace: true });
+          navigate("/dashboard", { replace: true });
         },
         onError: (err: unknown) => {
-          const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-          setGlobalError(msg ?? "Invalid email or password.");
+          setGlobalError(parseAuthError(err));
         },
       },
     );
@@ -317,14 +320,20 @@ function SignInView({
   return (
     <div className="space-y-5">
       {/* Google sign in */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-2">
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
-          onError={() => setGlobalError("Google sign-in failed.")}
+          onError={() => setGlobalError("Google Sign-In popup closed or Client ID unverified.")}
           theme="filled_black"
           shape="pill"
           width="300"
         />
+        {googleSignIn.isPending && (
+          <div className="flex items-center gap-2 text-xs text-accent">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Authenticating with Google...
+          </div>
+        )}
       </div>
 
       <OrDivider />
@@ -360,7 +369,7 @@ function SignInView({
 
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="h-3.5 w-3.5 rounded border-border bg-surface accent-primary" />
+            <input type="checkbox" className="h-3.5 w-3.5 rounded border-border bg-surface accent-primary" defaultChecked />
             <span className="text-xs text-white/40">Remember me</span>
           </label>
           <button
@@ -381,7 +390,7 @@ function SignInView({
               className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3"
             >
               <AlertCircle className="h-4 w-4 text-danger shrink-0" />
-              <p className="text-sm text-danger">{globalError}</p>
+              <p className="text-xs text-danger leading-relaxed">{globalError}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -438,34 +447,27 @@ function RegisterView({
   const [success, setSuccess] = useState(false);
 
   const handleGoogleSuccess = (res: CredentialResponse) => {
-    console.log("[Auth] Google account selection completed (Register View). Credential received.");
     if (!res.credential) {
-      console.warn("[Auth Error] No Google credential present in response.");
       setGlobalError("No Google ID token credential received.");
       return;
     }
     setGlobalError("");
     googleSignIn.mutate(res.credential, {
       onSuccess: () => {
-        console.log("[Auth] Redirecting to dashboard...");
         onClose();
-        navigate("/", { replace: true });
+        navigate("/dashboard", { replace: true });
       },
       onError: (err: unknown) => {
-        const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-        console.error("[Auth Error] Google sign-up failed:", msg ?? err);
-        setGlobalError(msg ?? "Google sign-up failed. Please verify your connection.");
+        setGlobalError(parseAuthError(err));
       },
     });
   };
-
-
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!fullName.trim()) errs.fullName = "Full name is required";
     if (!email) errs.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Enter a valid email";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Enter a valid email address";
     if (!password) errs.password = "Password is required";
     else if (getStrengthScore(password) < 3) errs.password = "Password is too weak";
     if (!confirmPassword) errs.confirmPassword = "Please confirm your password";
@@ -495,8 +497,7 @@ function RegisterView({
       {
         onSuccess: () => setSuccess(true),
         onError: (err: unknown) => {
-          const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-          setGlobalError(msg ?? "Registration failed. Please try again.");
+          setGlobalError(parseAuthError(err));
         },
       },
     );
@@ -512,16 +513,15 @@ function RegisterView({
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success/20">
           <CheckCircle2 className="h-8 w-8 text-success" />
         </div>
-        <h3 className="font-display text-xl font-semibold text-white">Check your email</h3>
+        <h3 className="font-display text-xl font-semibold text-white">Account Created!</h3>
         <p className="text-sm text-white/55 leading-relaxed">
-          We sent a verification link to <span className="text-white font-medium">{email}</span>.
-          Click the link to activate your account.
+          Your account for <span className="text-white font-medium">{email}</span> has been successfully created.
         </p>
         <button
           onClick={onSwitchToSignIn}
-          className="btn-glass w-full mt-4"
+          className="btn-primary w-full mt-4"
         >
-          Back to Sign In
+          Proceed to Sign In
         </button>
       </motion.div>
     );
@@ -532,15 +532,21 @@ function RegisterView({
   return (
     <div className="space-y-4">
       {/* Google sign up */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-2">
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
-          onError={() => setGlobalError("Google sign-up failed.")}
+          onError={() => setGlobalError("Google Sign-Up popup closed or Client ID unverified.")}
           theme="filled_black"
           shape="pill"
           width="300"
           text="signup_with"
         />
+        {googleSignIn.isPending && (
+          <div className="flex items-center gap-2 text-xs text-accent">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Creating account with Google...
+          </div>
+        )}
       </div>
 
       <OrDivider />
@@ -612,7 +618,7 @@ function RegisterView({
               className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3"
             >
               <AlertCircle className="h-4 w-4 text-danger shrink-0" />
-              <p className="text-sm text-danger">{globalError}</p>
+              <p className="text-xs text-danger leading-relaxed">{globalError}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -658,13 +664,13 @@ function ForgotPasswordView({ onBack }: { onBack: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) { setEmailError("Email is required"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError("Enter a valid email"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError("Enter a valid email address"); return; }
 
     forgotPassword.mutate(
       { email: email.toLowerCase().trim() },
       {
         onSuccess: () => setSent(true),
-        onError: () => setSent(true), // Don't reveal if email exists
+        onError: () => setSent(true),
       },
     );
   };
@@ -681,7 +687,7 @@ function ForgotPasswordView({ onBack }: { onBack: () => void }) {
         </div>
         <h3 className="font-display text-lg font-semibold text-white">Reset link sent</h3>
         <p className="text-sm text-white/55 leading-relaxed">
-          If an account exists for <span className="text-white font-medium">{email}</span>, you&apos;ll receive a password reset link shortly.
+          If an account exists for <span className="text-white font-medium">{email}</span>, a password reset token was generated.
         </p>
         <button onClick={onBack} className="btn-glass w-full mt-2">
           <ArrowLeft className="h-4 w-4" />
@@ -695,7 +701,7 @@ function ForgotPasswordView({ onBack }: { onBack: () => void }) {
     <div className="space-y-5">
       <div>
         <h3 className="font-display text-lg font-semibold text-white mb-1">Reset your password</h3>
-        <p className="text-sm text-white/50">Enter your email and we&apos;ll send you a reset link.</p>
+        <p className="text-sm text-white/50">Enter your email and we&apos;ll process your reset token.</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -755,19 +761,17 @@ const TITLES: Record<View, string> = {
 
 const SUBTITLES: Record<View, string> = {
   signin: "Sign in to your Vikrm workspace",
-  register: "Join the AI automation revolution",
+  register: "Join the AI automation platform",
   forgot: "We'll help you recover access",
 };
 
 export function AuthModal({ defaultView = "signin", onClose }: AuthModalProps) {
   const [view, setView] = useState<View>(defaultView);
 
-  // Close on backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  // Close on Escape
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") onClose();
   };

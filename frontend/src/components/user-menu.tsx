@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { LogOut, Settings, User, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 import { useLogout } from "@/hooks/use-auth";
 import { useAuthStore } from "@/store/use-auth-store";
@@ -13,6 +14,7 @@ interface UserMenuProps {
 export function UserMenu({ collapsed = false }: UserMenuProps) {
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -157,11 +159,17 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
               )}
             </div>
             <div className="p-1.5 space-y-0.5">
-              <button className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all">
+              <button
+                onClick={() => { navigate("/settings"); setOpen(false); }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              >
                 <User className="h-3.5 w-3.5" strokeWidth={1.75} />
                 Profile
               </button>
-              <button className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all">
+              <button
+                onClick={() => { navigate("/settings"); setOpen(false); }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              >
                 <Settings className="h-3.5 w-3.5" strokeWidth={1.75} />
                 Settings
               </button>

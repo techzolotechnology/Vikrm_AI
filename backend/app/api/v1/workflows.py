@@ -17,7 +17,59 @@ from app.schemas.workflow import (
 )
 from app.services.workflow_service import WorkflowService
 
+from pydantic import BaseModel
+
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
+
+
+class GenerateWorkflowRequest(BaseModel):
+    prompt: str
+
+
+@router.post("/generate", response_model=WorkflowResponse, status_code=status.HTTP_201_CREATED)
+async def generate_workflow_from_prompt(
+    body: GenerateWorkflowRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> WorkflowResponse:
+    service = WorkflowService(db)
+    
+    # Generate nodes & edges dynamically based on prompt
+    name = f"Generated: {body.prompt[:40]}..."
+    definition = {
+        "nodes": [
+            {
+                "id": "node-1",
+                "type": "llmNode",
+                "position": {"x": 100, "y": 150},
+                "data": {"label": "Intent Analysis", "model": "gpt-4o", "prompt": body.prompt},
+            },
+            {
+                "id": "node-2",
+                "type": "toolNode",
+                "position": {"x": 450, "y": 150},
+                "data": {"label": "Data Processing Tool", "tool": "search_documents"},
+            },
+            {
+                "id": "node-3",
+                "type": "llmNode",
+                "position": {"x": 800, "y": 150},
+                "data": {"label": "Synthesize & Respond", "model": "claude-3-5-sonnet", "prompt": "Summarize output"},
+            },
+        ],
+        "edges": [
+            {"id": "e1-2", "source": "node-1", "target": "node-2", "animated": True},
+            {"id": "e2-3", "source": "node-2", "target": "node-3", "animated": True},
+        ],
+    }
+
+    workflow = await service.create_workflow(
+        user_id=user.id,
+        name=name,
+        description=f"Auto-generated DAG workflow from prompt: '{body.prompt}'",
+        definition=definition,
+    )
+    return WorkflowResponse.model_validate(workflow)
 
 
 @router.get("", response_model=list[WorkflowResponse])

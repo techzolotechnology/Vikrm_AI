@@ -1,0 +1,12 @@
+{
+  "dataset_name": "openai_humaneval",
+  "hf_path": "openai_humaneval",
+  "description": "OpenAI HumanEval coding benchmark.",
+  "language": "python",
+  "framework": "benchmarks",
+  "document_count": 7,
+  "size_bytes": 4504,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\openai_humaneval\\index"
+}

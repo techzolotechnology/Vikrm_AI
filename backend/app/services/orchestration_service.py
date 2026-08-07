@@ -28,7 +28,7 @@ from app.models.agent_team import AgentTeam, AgentTeamRun, TeamRunStatus
 from app.repositories.agent_repository import AgentRepository
 from app.repositories.agent_team_repository import AgentTeamRepository, AgentTeamRunRepository
 from app.services.agent_service import build_system_prompt
-from app.services.llm.base import ChatMessage
+from app.services.llm.base import ChatMessage, ensure_chat_response, normalize_content_chunk
 from app.services.llm.registry import get_provider
 from app.services.orchestration.planning import (
     build_planning_prompt,
@@ -139,7 +139,7 @@ class OrchestrationService:
                     {
                         "agent_name": member.name,
                         "subtask": subtask,
-                        "output": output,
+                        "output": ensure_chat_response(output),
                         "status": "success",
                         "error": None,
                     }
@@ -161,6 +161,7 @@ class OrchestrationService:
             synthesis_prompt = build_synthesis_prompt(task=task, step_results=successful_steps)
             try:
                 final_output = await self._call_agent(manager, synthesis_prompt)
+                final_output = ensure_chat_response(final_output)
                 overall_status = TeamRunStatus.COMPLETED
                 run_error = None
             except Exception as exc:  # noqa: BLE001
@@ -200,6 +201,23 @@ class OrchestrationService:
     async def _call_agent(agent: Agent, prompt: str) -> str:
         messages = []
         system_prompt = build_system_prompt(agent)
+
+        # Inject RAG context into agent prompt
+        try:
+            from app.services.rag.retriever import KnowledgeRetriever
+            from app.services.rag.context_builder import RAGContextBuilder
+            retriever = KnowledgeRetriever()
+            res = retriever.retrieve_context(prompt, top_k=5)
+            context_builder = RAGContextBuilder()
+            augmented_prompt = context_builder.build_augmented_prompt(prompt, res)
+            if augmented_prompt != prompt:
+                if system_prompt:
+                    system_prompt = f"{system_prompt}\n\n{augmented_prompt}"
+                else:
+                    system_prompt = augmented_prompt
+        except Exception:
+            pass
+
         if system_prompt:
             messages.append(ChatMessage(role="system", content=system_prompt))
         messages.append(ChatMessage(role="user", content=prompt))
@@ -209,5 +227,8 @@ class OrchestrationService:
         async for chunk in provider.stream_chat(
             messages=messages, model=agent.model, temperature=agent.temperature
         ):
-            chunks.append(chunk)
-        return "".join(chunks)
+            norm_chunk = normalize_content_chunk(chunk)
+            if norm_chunk:
+                chunks.append(norm_chunk)
+        return ensure_chat_response("".join(chunks))
+

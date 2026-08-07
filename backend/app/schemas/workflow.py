@@ -50,6 +50,10 @@ class RunWorkflowRequest(BaseModel):
     input: str = ""
 
 
+from app.services.llm.base import normalize_content_chunk
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
 class WorkflowStepSchema(BaseModel):
     node_id: str
     node_type: str
@@ -59,6 +63,11 @@ class WorkflowStepSchema(BaseModel):
     error: str | None
     started_at: str
     completed_at: str
+
+    @field_validator("output", mode="before")
+    @classmethod
+    def validate_output(cls, v: Any) -> str:
+        return normalize_content_chunk(v)
 
 
 class WorkflowRunResponse(BaseModel):
@@ -73,3 +82,8 @@ class WorkflowRunResponse(BaseModel):
     error: str | None
     started_at: datetime
     completed_at: datetime | None
+
+    @field_validator("final_output", mode="before")
+    @classmethod
+    def validate_final_output(cls, v: Any) -> str | None:
+        return normalize_content_chunk(v) if v is not None else None

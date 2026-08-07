@@ -15,6 +15,13 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // If request data is FormData, remove default Content-Type so Axios auto-calculates boundary
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+    if (config.headers.delete) {
+      config.headers.delete("Content-Type");
+    }
+  }
   return config;
 });
 
@@ -22,10 +29,6 @@ interface RetriableConfig extends InternalAxiosRequestConfig {
   _retried?: boolean;
 }
 
-// Concurrent 401s should trigger exactly one refresh call, with every
-// other queued request waiting on the same in-flight promise rather
-// than each firing its own refresh (which would race token rotation
-// on the backend and log the user out).
 let refreshPromise: Promise<string> | null = null;
 
 async function performRefresh(): Promise<string> {
@@ -56,7 +59,6 @@ apiClient.interceptors.response.use(
     }
 
     if (originalRequest.url?.includes("/auth/refresh")) {
-      // The refresh call itself failed — session is unrecoverable.
       useAuthStore.getState().clearSession();
       return Promise.reject(error);
     }

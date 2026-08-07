@@ -1,0 +1,12 @@
+{
+  "dataset_name": "typescript_handbook",
+  "hf_path": "docs/typescript",
+  "description": "TypeScript language handbook, types, generics, and compiler options.",
+  "language": "typescript",
+  "framework": "typescript",
+  "document_count": 7,
+  "size_bytes": 4630,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\typescript_handbook\\index"
+}
