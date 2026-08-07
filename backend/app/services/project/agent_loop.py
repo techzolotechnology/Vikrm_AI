@@ -2,12 +2,12 @@
 True Agent Loop — Autonomous Multi-Agent Software Engineering Pipeline.
 
 Executes a 12-Phase Autonomous Agent Loop:
-  1. Deep Requirement Analysis
-  2. Architecture Planning
-  3. Task Decomposition (DAG)
-  4. Multi-Agent Assignment
-  5. Sequential Batch Generation (10 Batches)
-  6. Continuous Validation
+  1. Deep Requirement Analysis (RequirementAnalysisService)
+  2. Architecture Planning (ArchitecturePlanner)
+  3. Task Decomposition (TaskGraphBuilder DAG)
+  4. Multi-Agent Knowledge Retrieval (KnowledgeRetriever RAG)
+  5. Sequential Batch Generation (CodeSynthesisEngine / LLMCodeSynthesizer)
+  6. Continuous Pre-Flight Validation (ValidationService / ProductionValidator)
   7. Workspace Intelligence Preservation
   8. Incremental Edit Handler
   9. Autonomous Agent Loop Execution
@@ -26,30 +26,19 @@ import time
 import json
 from typing import AsyncIterator, List, Dict, Any, Tuple
 from dataclasses import dataclass, field
+
 from app.services.project.planning_agent import AgentPlan, PlanningAgent
+from app.services.project.requirement_analysis_service import RequirementAnalysisService, RequirementSpec
 from app.services.project.architecture_planner import ArchitecturePlanner, ProjectPlan
+from app.services.project.task_graph_builder import TaskGraphBuilder, TaskGraph, TaskNode
+from app.services.project.code_synthesis_engine import CodeSynthesisEngine
 from app.services.project.code_synthesizer import LLMCodeSynthesizer
 from app.services.project.dependency_graph import DependencyGraphResolver
 from app.services.project.score_evaluator import ScoreEvaluator, ProjectScoreReport
+from app.services.validation_service import ValidationService
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-
-
-@dataclass
-class ProjectSpecification:
-    domain: str = ""
-    business_goals: List[str] = field(default_factory=list)
-    required_features: List[str] = field(default_factory=list)
-    hidden_requirements: List[str] = field(default_factory=list)
-    auth_strategy: str = "JWT + OAuth2"
-    database: str = "PostgreSQL"
-    frontend: str = "React 19 + TypeScript + Tailwind CSS"
-    backend: str = "FastAPI + Python 3.11"
-    deployment: str = "Docker + Kubernetes"
-    testing: str = "Vitest + Pytest + Playwright"
-    monitoring: str = "Prometheus + Grafana"
-    documentation: str = "Swagger + Markdown"
 
 
 @dataclass
@@ -90,9 +79,6 @@ class ProjectMetrics:
         self.route_files = sum(1 for p in files if "/routes/" in p)
         self.server_files = sum(1 for p in files if p.startswith("server/"))
         self.config_files = sum(1 for p in files if p in ("package.json", "tsconfig.json", "vite.config.ts", "tailwind.config.js", "docker-compose.yml", "playwright.config.ts"))
-        
-        all_planned = [f for task in plan.tasks for f in task.files]
-        self.missing_files = [f for f in all_planned if f not in files]
 
         langs = set()
         for p in files:
@@ -106,96 +92,8 @@ class ProjectMetrics:
         self.languages = sorted(langs)
 
 
-class ProductionValidator:
-    """Automated Build & Import Verification Engine."""
-
-    @classmethod
-    def validate(cls, files: dict[str, str]) -> tuple[bool, list[str]]:
-        issues: list[str] = []
-        paths = set(files.keys())
-
-        for required in ["package.json", "tsconfig.json", "vite.config.ts", "src/index.css"]:
-            if required not in paths:
-                issues.append(f"Missing required file: {required}")
-
-        if "package.json" in files:
-            try:
-                pkg = json.loads(files["package.json"])
-                if "name" not in pkg:
-                    issues.append("package.json missing 'name' field")
-                if "scripts" not in pkg or "build" not in pkg.get("scripts", {}):
-                    issues.append("package.json missing 'build' script")
-            except Exception as e:
-                issues.append(f"package.json JSON parse error: {e}")
-
-        for path, content in files.items():
-            if "TODO:" in content or "FIXME:" in content or "PLACEHOLDER" in content:
-                issues.append(f"TODO/PLACEHOLDER found in {path}")
-
-        for path, content in files.items():
-            if path.endswith(".py"):
-                try:
-                    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False, encoding="utf-8") as f:
-                        f.write(content)
-                        tmp = f.name
-                    py_compile.compile(tmp, doraise=True)
-                    os.remove(tmp)
-                except py_compile.PyCompileError as e:
-                    issues.append(f"Python syntax error in {path}: {e.msg}")
-                except Exception as e:
-                    if os.path.exists(tmp): os.remove(tmp)
-
-        if "src/App.tsx" in files:
-            app_content = files["src/App.tsx"]
-            if "export default" not in app_content and "export function App" not in app_content:
-                issues.append("src/App.tsx missing default export")
-
-        if "src/App.tsx" in files and "src/main.tsx" not in files:
-            issues.append("src/main.tsx missing (App.tsx exists but no entry point)")
-
-        if "README.md" not in files:
-            issues.append("README.md is missing")
-
-        if ".env.example" not in files:
-            issues.append(".env.example is missing")
-
-        if "Dockerfile" not in files and "server/Dockerfile" not in files:
-            issues.append("Dockerfile missing")
-
-        has_tests = any("test" in p.lower() or "spec" in p.lower() for p in paths)
-        if not has_tests:
-            issues.append("No test files found")
-
-        passed = len(issues) == 0
-        return passed, issues
-
-    @classmethod
-    def auto_fix(cls, files: dict[str, str], issues: list[str]) -> dict[str, str]:
-        fixed = dict(files)
-        for issue in issues:
-            if "Missing required file: src/index.css" in issue:
-                fixed["src/index.css"] = "@tailwind base;\n@tailwind components;\n@tailwind utilities;\nbody { margin: 0; }\n"
-            elif "src/main.tsx missing" in issue and "src/App.tsx" in fixed:
-                fixed["src/main.tsx"] = (
-                    "import { StrictMode } from 'react';\n"
-                    "import { createRoot } from 'react-dom/client';\n"
-                    "import App from './App';\n"
-                    "import './index.css';\n"
-                    "createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);\n"
-                )
-            elif "README.md is missing" in issue:
-                fixed["README.md"] = "# Project\n\nGenerated by Vikrm AI Platform.\n\n```bash\nnpm install\nnpm run dev\n```\n"
-            elif ".env.example is missing" in issue:
-                fixed[".env.example"] = "VITE_API_BASE_URL=http://localhost:8000\n"
-            elif "Dockerfile missing" in issue:
-                fixed["Dockerfile"] = "FROM node:20-alpine\nWORKDIR /app\nCOPY package.json .\nRUN npm install\nCOPY . .\nRUN npm run build\nEXPOSE 3000\nCMD [\"npm\", \"run\", \"dev\"]\n"
-            elif "No test files found" in issue:
-                fixed["src/__tests__/smoke.test.tsx"] = "import { describe, it, expect } from 'vitest';\ndescribe('smoke', () => { it('passes', () => expect(true).toBe(true)); });\n"
-        return fixed
-
-
 class AgentLoop:
-    MAX_REPAIR_ITERATIONS = 10
+    MAX_REPAIR_ITERATIONS = 3
 
     @classmethod
     async def run(
@@ -206,22 +104,31 @@ class AgentLoop:
         metrics = ProjectMetrics()
         repair_count = 0
 
-        # ── Phase 1: Deep Requirement Analysis ──
+        # ── Phase 1: Requirement Analysis ──
         yield ("status", "[Phase 1: Deep Requirement Analysis...]")
-        await asyncio.sleep(0.01)
+        req_service = RequirementAnalysisService()
+        spec: RequirementSpec = await req_service.analyze_requirement(prompt)
+
+        if spec.is_ambiguous:
+            yield ("status", "[Phase 1: Ambiguity Gate Triggered — Clarification Required]")
+            q_text = "\n".join(f"- {q}" for q in spec.clarification_questions)
+            yield ("file", f"### CLARIFICATION_REQUIRED.md\n```markdown\n# Ambiguous Requirement Prompt\n\n{q_text}\n```\n\n")
+            return
 
         # ── Phase 2: Architecture Planning ──
-        yield ("status", "[Phase 2: Architecture Planning & Domain Inference...]")
-        await asyncio.sleep(0.01)
+        yield ("status", f"[Phase 2: Architecture Planning & Domain Inference ({spec.domain})...]")
+        arch_planner = ArchitecturePlanner()
+        proj_plan: ProjectPlan = await arch_planner.plan_architecture(spec)
         plan: AgentPlan = PlanningAgent.plan(prompt)
 
         # ── Phase 3: Task Decomposition (DAG) ──
-        yield ("status", f"[Phase 3: Task Decomposition ({len(plan.tasks)} DAG Nodes)...]")
-        await asyncio.sleep(0.01)
+        yield ("status", "[Phase 3: Task Decomposition & Topological DAG Construction...]")
+        task_graph = TaskGraphBuilder.build_graph(spec, proj_plan)
+        dag_batches = TaskGraphBuilder.topological_sort(task_graph)
+        yield ("status", f"[Phase 3: DAG Created with {len(task_graph.nodes)} Task Nodes across {len(dag_batches)} Execution Batches]")
 
         # ── Phase 4: Multi-Agent Execution & Knowledge Retrieval ──
         yield ("status", "[Phase 4: Multi-Agent Knowledge Retrieval (RAG)...]")
-        await asyncio.sleep(0.01)
         try:
             from app.services.chat_service import get_knowledge_retriever
             retriever = get_knowledge_retriever()
@@ -234,51 +141,40 @@ class AgentLoop:
         except Exception as rag_err:
             logger.warning("[AgentLoop RAG] RAG retrieval warning: %s", rag_err)
 
-        # ── Phase 5: Sequential Batch Generation (10 Batches) ──
-        files = LLMCodeSynthesizer.synthesize(plan)
-        total_files = len(files)
+        # ── Phase 5: Sequential Batch Generation ──
+        files: Dict[str, str] = LLMCodeSynthesizer.synthesize(plan)
+        synthesis_engine = CodeSynthesisEngine()
 
-        batches = [
-            ("Batch 1/10: Shell & Config", lambda: sum(1 for p in files if p in ("package.json", "tsconfig.json", "vite.config.ts"))),
-            ("Batch 2/10: Authentication", lambda: sum(1 for p in files if "auth" in p.lower())),
-            ("Batch 3/10: Database Schema", lambda: sum(1 for p in files if "model" in p.lower() or "schema" in p.lower() or p.endswith(".sql"))),
-            ("Batch 4/10: Core APIs", lambda: sum(1 for p in files if p.startswith("server/"))),
-            ("Batch 5/10: UI Components", lambda: sum(1 for p in files if "/components/" in p)),
-            ("Batch 6/10: Pages & Routing", lambda: sum(1 for p in files if "/pages/" in p or "Page.tsx" in p)),
-            ("Batch 7/10: Hooks & State", lambda: sum(1 for p in files if "/hooks/" in p or "/context/" in p)),
-            ("Batch 8/10: Test Suites", lambda: sum(1 for p in files if "test" in p.lower() or "spec" in p.lower())),
-            ("Batch 9/10: DevOps & Containers", lambda: sum(1 for p in files if "docker" in p.lower() or p.endswith(".sh"))),
-            ("Batch 10/10: CI/CD & Docs", lambda: sum(1 for p in files if ".github" in p or p.endswith(".md"))),
-        ]
+        for b_idx, batch_nodes in enumerate(dag_batches, start=1):
+            batch_label = ", ".join(n.name for n in batch_nodes[:2])
+            yield ("status", f"[Phase 5: Batch {b_idx}/{len(dag_batches)} Generation ({batch_label})...]")
+            batch_files = await synthesis_engine.generate_batch(batch_nodes, plan, files)
+            files.update(batch_files)
 
-        for b_title, b_calc in batches:
-            count = b_calc()
-            yield ("status", f"[Phase 5: {b_title} ({count} files)...]")
-            await asyncio.sleep(0.01)
+        # Apply topological sorting
+        files = DependencyGraphResolver.sort_files(files)
 
-        # ── Phase 6 & 7: Continuous Validation & Workspace Intelligence ──
-        yield ("status", "[Phase 6: Running Continuous Validation...]")
-        await asyncio.sleep(0.01)
-        passed, issues = ProductionValidator.validate(files)
+        # ── Phase 6 & 7: Continuous Validation & Self Repair ──
+        yield ("status", "[Phase 6: Running Pre-Flight Code Validation...]")
+        val_results = ValidationService.validate_file_map(files)
+        invalid_count = sum(1 for r in val_results.values() if not r.is_valid)
 
-        for iteration in range(1, cls.MAX_REPAIR_ITERATIONS + 1):
-            if passed:
-                break
-            repair_count = iteration
-            yield ("status", f"[Phase 6: Self Repair Iteration ({iteration}/{cls.MAX_REPAIR_ITERATIONS})...]")
-            await asyncio.sleep(0.01)
-            files = ProductionValidator.auto_fix(files, issues)
-            passed, issues = ProductionValidator.validate(files)
+        if invalid_count > 0:
+            yield ("status", f"[Phase 6: Self-Repair Loop Triggered ({invalid_count} files with issues)...]")
+            files = await ValidationService.self_repair_loop(files, max_attempts=cls.MAX_REPAIR_ITERATIONS)
+            val_results = ValidationService.validate_file_map(files)
+            passed = all(r.is_valid for r in val_results.values())
+        else:
+            passed = True
 
-        # ── Phase 8, 9 & 10: Completeness Criteria & Ready Status ──
+        # ── Phase 10: Workspace Ready ──
         yield ("status", f"[Phase 10: Workspace Ready ({len(files)}/{plan.planned_files + 1} files passed)]")
-        await asyncio.sleep(0.01)
 
         elapsed = time.perf_counter() - start_time
         metrics.compute(plan, files, passed, repair_count)
         logger.info(
-            "[AgentLoop] Generated %d files | Estimated: %d | Complexity: %s | Repairs: %d | Latency: %.2fs",
-            len(files), plan.planned_files, plan.complexity, repair_count, elapsed
+            "[AgentLoop] Generated %d files | Complexity: %s | Latency: %.2fs",
+            len(files), plan.complexity, elapsed
         )
 
         # ── Phase 12: Architectural Reasoning Telemetry Report ──
@@ -289,35 +185,28 @@ class AgentLoop:
 ### 1. Project Specification & Domain Intelligence
 - **Target Domain**: `{domain_name}` (`{slug}`)
 - **Complexity Tier**: `{plan.complexity}`
-- **Planned Executable Modules**: `{plan.planned_files}` files across `{len(plan.tasks)}` DAG task nodes
-- **Architecture**: `React 19 + TypeScript + FastAPI + PostgreSQL + Redis + Docker`
+- **Planned Executable Modules**: `{plan.planned_files}` files across `{len(task_graph.nodes)}` DAG task nodes
+- **Architecture**: `{proj_plan.tech_stack.framework} + {proj_plan.tech_stack.database} + {proj_plan.tech_stack.deployment_target}`
 
 ```mermaid
 graph TD
-    Client["React 19 Frontend App"] --> API["FastAPI REST Backend"]
-    API --> Auth["JWT & OAuth2 Auth Engine"]
-    API --> DB[("PostgreSQL Database")]
-    API --> Cache[("Redis Cache")]
-    API --> Queue["RabbitMQ Message Bus"]
+    Client["{proj_plan.tech_stack.framework}"] --> API["FastAPI REST Backend"]
+    API --> Auth["{proj_plan.tech_stack.authentication}"]
+    API --> DB[("{proj_plan.tech_stack.database}")]
 ```
 
-### 2. Multi-Agent Batch Synthesis Summary
-| Batch Stage | Agent Module | Status | File Count |
-|---|---|---|---|
-| Batch 1 | Architecture & Config Agent | `PASS` | {sum(1 for p in files if p in ("package.json", "tsconfig.json", "vite.config.ts"))} files |
-| Batch 2 | Authentication & Security Agent | `PASS` | {sum(1 for p in files if "auth" in p.lower())} files |
-| Batch 3 | Database Schema & ORM Agent | `PASS` | {sum(1 for p in files if "model" in p.lower() or "schema" in p.lower() or p.endswith(".sql"))} files |
-| Batch 4 | Backend REST API Agent | `PASS` | {sum(1 for p in files if p.startswith("server/"))} files |
-| Batch 5 | Frontend UI Components Agent | `PASS` | {sum(1 for p in files if "/components/" in p)} files |
-| Batch 6 | Pages & Routing Agent | `PASS` | {sum(1 for p in files if "/pages/" in p or "Page.tsx" in p)} files |
-| Batch 7 | Custom Hooks & State Agent | `PASS` | {sum(1 for p in files if "/hooks/" in p or "/context/" in p)} files |
-| Batch 8 | Testing & QA Verification Agent | `PASS` | {sum(1 for p in files if "test" in p.lower() or "spec" in p.lower())} files |
-| Batch 9 | DevOps & Containerization Agent | `PASS` | {sum(1 for p in files if "docker" in p.lower() or p.endswith(".sh"))} files |
-| Batch 10| CI/CD & Documentation Agent | `PASS` | {sum(1 for p in files if ".github" in p or p.endswith(".md"))} files |
+### 2. Multi-Agent DAG Batch Execution Summary
+| Batch Stage | DAG Node Name | File Count |
+|---|---|---|
+"""
+        for b_idx, batch_nodes in enumerate(dag_batches, start=1):
+            n_names = ", ".join(n.name for n in batch_nodes)
+            f_count = sum(len(n.files) for n in batch_nodes)
+            reasoning_header += f"| Batch {b_idx} | `{n_names}` | {f_count} target files |\n"
 
-### 3. Automated Validation & Quality Assurance
-- **Production Validation**: `{"PASS" if passed else "WARN"}`
-- **Repair Iterations Executed**: `{repair_count}`
+        reasoning_header += f"""
+### 3. Automated Pre-Flight Validation & Self-Repair
+- **Pre-Flight Validation**: `{"PASS" if passed else "WARN"}`
 - **TODO / Placeholder Count**: `0`
 - **Total Synthesized Workspace Files**: `{len(files)} files` (`{metrics.total_lines:,}` lines of code)
 
