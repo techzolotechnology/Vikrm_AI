@@ -43,11 +43,15 @@ class CodeSynthesisEngine:
             rag_docs_str = "\n".join(f"- {doc[:300]}" for doc in plan.rag_context[:3])
             rag_section = f"\nRetrieved RAG Context:\n{rag_docs_str}\n"
 
+        proj_title = getattr(plan, "project_name", getattr(plan, "name", "Project"))
+        framework = getattr(plan, "framework", getattr(getattr(plan, "tech_stack", None), "framework", "React 19"))
+        database = getattr(plan, "database", getattr(getattr(plan, "tech_stack", None), "database", "PostgreSQL"))
+
         prompt = (
             f"You are Vikrm AI Code Synthesis Engine.\n"
             f"Batch Target: {batch_name}\n"
-            f"Project: {plan.project_name} ({plan.domain})\n"
-            f"Framework: {plan.framework} + {plan.database}\n"
+            f"Project: {proj_title} ({plan.domain})\n"
+            f"Framework: {framework} + {database}\n"
             f"Files to generate:\n" + "\n".join(f"- {f}" for f in batch_files) + "\n"
             f"Existing Workspace Files:\n{existing_manifest}\n"
             f"{rag_section}\n"
