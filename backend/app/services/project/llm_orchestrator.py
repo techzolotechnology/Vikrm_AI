@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 from pydantic import BaseModel
 from app.services.llm.base import ChatMessage
 from app.services.llm.registry import get_provider
+from app.core.config import settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -42,8 +43,8 @@ class LLMOrchestrator:
         model: Optional[str] = None,
         temperature: float = 0.2,
     ) -> str:
-        prov_name = provider_name or self.default_provider
-        mdl = model or self.default_model
+        prov_name = provider_name or self.default_provider or settings.DEFAULT_LLM_PROVIDER
+        mdl = model or self.default_model or settings.DEFAULT_LLM_MODEL
         last_error: Optional[Exception] = None
 
         for attempt in range(1, self.max_retries + 1):
