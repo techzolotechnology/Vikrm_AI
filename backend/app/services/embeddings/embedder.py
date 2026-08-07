@@ -21,13 +21,19 @@ class CodeEmbedder:
         if self._model is not None:
             return self._model
 
+        import os
+        if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("VIKRM_TEST_MODE"):
+            self._model = "fallback"
+            self._dimension = 384
+            return self._model
+
         try:
             from sentence_transformers import SentenceTransformer
             logger.info("Loading primary SentenceTransformer model: %s", self.model_name)
             self._model = SentenceTransformer(self.model_name)
             self._dimension = self._model.get_sentence_embedding_dimension() or self._dimension
             return self._model
-        except Exception as exc:
+        except (Exception, BaseException) as exc:
             logger.warning("Failed to load primary model %s: %s. Loading fallback %s", self.model_name, exc, FALLBACK_EMBEDDING_MODEL)
             try:
                 from sentence_transformers import SentenceTransformer
@@ -35,7 +41,7 @@ class CodeEmbedder:
                 self._model = SentenceTransformer(FALLBACK_EMBEDDING_MODEL)
                 self._dimension = self._model.get_sentence_embedding_dimension() or 384
                 return self._model
-            except Exception as exc2:
+            except (Exception, BaseException) as exc2:
                 logger.warning("Failed to load fallback SentenceTransformer: %s. Using deterministic fallback vectorizer.", exc2)
                 self._model = "fallback"
                 self._dimension = 384
