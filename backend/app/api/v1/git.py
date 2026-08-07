@@ -1,8 +1,9 @@
 """
-Git Integration API — Professional AI IDE
-Supports: status, diff, commit, history, branches, checkout, revert, cherry-pick, merge
+Git Integration API — Professional AI IDE.
+
+Phase 1 Status: Marked explicitly as not_yet_implemented pending Phase 8 git_workspace_service.py integration.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.api.deps import get_current_user
 from app.models.user import User
@@ -27,83 +28,71 @@ class GitMergeRequest(BaseModel):
     target_branch: str = "main"
 
 
-# Simulated in-memory git state per project (production: integrate libgit2 / gitpython)
-_GIT_STATE: dict = {}
-
-
-def _get_state(project_id: int) -> dict:
-    if project_id not in _GIT_STATE:
-        _GIT_STATE[project_id] = {
-            "branch": "main",
-            "branches": ["main", "develop"],
-            "commits": [
-                {"hash": "a1b2c3d", "message": "Initial project scaffold", "author": "Vikrm AI", "date": "2026-08-05"},
-            ],
-            "staged": [],
-            "modified": [],
-        }
-    return _GIT_STATE[project_id]
-
-
 @router.get("/status/{project_id}")
 async def git_status(project_id: int, _user: User = Depends(get_current_user)):
-    state = _get_state(project_id)
     return {
-        "branch": state["branch"],
-        "branches": state["branches"],
-        "commits": len(state["commits"]),
-        "staged": state["staged"],
-        "modified": state["modified"],
-        "clean": len(state["staged"]) == 0 and len(state["modified"]) == 0,
+        "status": "not_yet_implemented",
+        "branch": "main",
+        "branches": ["main"],
+        "commits": 0,
+        "staged": [],
+        "modified": [],
+        "clean": True,
+        "message": "Phase 1: Real git status pending Phase 8 git_workspace_service.py integration.",
+        "is_simulated": True,
     }
 
 
 @router.post("/commit")
 async def git_commit(req: GitCommitRequest, _user: User = Depends(get_current_user)):
-    state = _get_state(req.project_id)
-    import random, string
-    hash_ = "".join(random.choices(string.hexdigits[:16], k=7))
-    from datetime import datetime
-    state["commits"].append({
-        "hash": hash_,
-        "message": req.message,
-        "author": "Developer",
-        "date": datetime.utcnow().strftime("%Y-%m-%d"),
+    return {
+        "status": "not_yet_implemented",
+        "hash": None,
+        "message": f"Phase 1: Git commit not_yet_implemented. Real git commit pending Phase 8 git_workspace_service.py. Requested message: {req.message}",
         "branch": req.branch,
-    })
-    state["staged"] = []
-    state["modified"] = []
-    return {"status": "committed", "hash": hash_, "message": req.message, "branch": req.branch}
+        "is_simulated": True,
+    }
 
 
 @router.get("/history/{project_id}")
 async def git_history(project_id: int, _user: User = Depends(get_current_user)):
-    state = _get_state(project_id)
-    return {"commits": list(reversed(state["commits"])), "branch": state["branch"]}
+    return {
+        "status": "not_yet_implemented",
+        "commits": [],
+        "branch": "main",
+        "message": "Phase 1: Real git log history pending Phase 8 git_workspace_service.py.",
+        "is_simulated": True,
+    }
 
 
 @router.get("/branches/{project_id}")
 async def git_branches(project_id: int, _user: User = Depends(get_current_user)):
-    state = _get_state(project_id)
-    return {"branches": state["branches"], "current": state["branch"]}
+    return {
+        "status": "not_yet_implemented",
+        "branches": ["main"],
+        "current": "main",
+        "message": "Phase 1: Real git branch listing pending Phase 8 git_workspace_service.py.",
+        "is_simulated": True,
+    }
 
 
 @router.post("/checkout")
 async def git_checkout(req: GitCheckoutRequest, _user: User = Depends(get_current_user)):
-    state = _get_state(req.project_id)
-    if req.branch not in state["branches"]:
-        state["branches"].append(req.branch)
-    state["branch"] = req.branch
-    return {"status": "checked_out", "branch": req.branch}
+    return {
+        "status": "not_yet_implemented",
+        "branch": req.branch,
+        "message": "Phase 1: Real git checkout pending Phase 8 git_workspace_service.py.",
+        "is_simulated": True,
+    }
 
 
 @router.post("/merge")
 async def git_merge(req: GitMergeRequest, _user: User = Depends(get_current_user)):
-    state = _get_state(req.project_id)
     return {
-        "status": "merged",
+        "status": "not_yet_implemented",
         "source": req.source_branch,
         "target": req.target_branch,
         "conflicts": 0,
-        "message": f"Successfully merged {req.source_branch} into {req.target_branch} with 0 conflicts",
+        "message": "Phase 1: Real git merge pending Phase 8 git_workspace_service.py.",
+        "is_simulated": True,
     }

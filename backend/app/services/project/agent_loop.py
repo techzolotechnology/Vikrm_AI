@@ -226,7 +226,11 @@ class AgentLoop:
             from app.services.chat_service import get_knowledge_retriever
             retriever = get_knowledge_retriever()
             rag_docs = retriever.retrieve_context(query=prompt, top_k=5)
-            logger.info("[AgentLoop RAG] Retrieved %d context documents for prompt=%r", len(rag_docs), prompt[:50])
+            plan.rag_context = [
+                doc if isinstance(doc, str) else getattr(doc, "text", getattr(doc, "page_content", str(doc)))
+                for doc in rag_docs
+            ]
+            logger.info("[AgentLoop RAG] Retrieved & attached %d context documents for prompt=%r", len(plan.rag_context), prompt[:50])
         except Exception as rag_err:
             logger.warning("[AgentLoop RAG] RAG retrieval warning: %s", rag_err)
 

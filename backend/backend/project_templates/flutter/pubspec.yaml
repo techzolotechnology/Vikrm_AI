@@ -1,7 +1,0 @@
-name: flutter_vikrm_app
-description: Flutter mobile application.
-environment:
-  sdk: '>=3.0.0 <4.0.0'
-dependencies:
-  flutter:
-    sdk: flutter

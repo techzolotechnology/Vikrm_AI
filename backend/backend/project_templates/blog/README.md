@@ -1,1 +1,0 @@
-# Modern Blog CMS Template

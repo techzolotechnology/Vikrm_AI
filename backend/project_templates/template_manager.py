@@ -281,7 +281,7 @@ class ProjectTemplateLibrary:
         if base_dir:
             self.base_dir = Path(base_dir)
         else:
-            self.base_dir = Path("backend/project_templates")
+            self.base_dir = Path(__file__).resolve().parent
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.init_templates_on_disk()
 

@@ -217,6 +217,7 @@ class AgentPlan(BaseModel):
     estimated_files: int
     tasks: List[ProjectTask]
     folder_structure: List[str]
+    rag_context: List[str] = Field(default_factory=list)
     metrics: Dict[str, Any] = Field(default_factory=dict)
 
 
