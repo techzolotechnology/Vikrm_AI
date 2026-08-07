@@ -3,6 +3,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { AdminUser, SystemStats } from "@/types/admin";
 
+export interface SystemLog {
+  timestamp: string;
+  level: string;
+  message: string;
+  source: string;
+}
+
+export interface ModelConfig {
+  provider: string;
+  model: string;
+  status: string;
+  latency_ms: number;
+}
+
 export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin", "users"],
@@ -18,6 +32,26 @@ export function useSystemStats() {
     queryKey: ["admin", "stats"],
     queryFn: async () => {
       const { data } = await apiClient.get<SystemStats>("/admin/stats");
+      return data;
+    },
+  });
+}
+
+export function useSystemLogs() {
+  return useQuery({
+    queryKey: ["admin", "logs"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<SystemLog[]>("/admin/logs");
+      return data;
+    },
+  });
+}
+
+export function useModelConfigs() {
+  return useQuery({
+    queryKey: ["admin", "models"],
+    queryFn: async () => {
+      const { data } = await apiClient.get<ModelConfig[]>("/admin/models");
       return data;
     },
   });

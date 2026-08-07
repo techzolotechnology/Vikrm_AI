@@ -15,9 +15,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 
+import os
+
+_backend_env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env"))
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(_backend_env_path, ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -70,8 +75,9 @@ class Settings(BaseSettings):
         return combined
 
 
-    # --- Database (MySQL) ---
-    MYSQL_HOST: str = "mysql"
+    # --- Database (MySQL / SQLite) ---
+    USE_SQLITE: bool = True
+    MYSQL_HOST: str = "localhost"
     MYSQL_PORT: int = 3306
     MYSQL_USER: str = "vikrm"
     MYSQL_PASSWORD: str = "vikrm_password"
@@ -79,6 +85,11 @@ class Settings(BaseSettings):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.USE_SQLITE:
+            import os
+            backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            db_path = os.path.join(backend_dir, "data", "vikrm.db").replace("\\", "/")
+            return f"sqlite+aiosqlite:///{db_path}"
         return (
             f"mysql+aiomysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
             f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"
@@ -87,13 +98,18 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_SYNC_DATABASE_URI(self) -> str:
         """Sync URI used by Alembic (which does not run inside the async loop)."""
+        if self.USE_SQLITE:
+            import os
+            backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            db_path = os.path.join(backend_dir, "data", "vikrm.db").replace("\\", "/")
+            return f"sqlite:///{db_path}"
         return (
             f"mysql+pymysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
             f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"
         )
 
     # --- Redis ---
-    REDIS_HOST: str = "redis"
+    REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
@@ -110,7 +126,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
 
     # --- LLM Providers ---
-    OLLAMA_BASE_URL: str = "http://ollama:11434"
+    OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
     DEFAULT_LLM_PROVIDER: str = "ollama"
     DEFAULT_LLM_MODEL: str = "llama3.2"
 
@@ -123,9 +139,21 @@ class Settings(BaseSettings):
     MISTRAL_API_KEY: str = ""
 
     # --- Vector store / embeddings (Milestone 5: Memory, Milestone 6: RAG) ---
-    CHROMA_PERSIST_DIR: str = "/app/data/chroma"
+    _CHROMA_PERSIST_DIR: str = ""
+
+    @property
+    def CHROMA_PERSIST_DIR(self) -> str:
+        if self._CHROMA_PERSIST_DIR:
+            return self._CHROMA_PERSIST_DIR
+        backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        return os.path.join(backend_dir, "data", "vector_store").replace("\\", "/")
+
+    @CHROMA_PERSIST_DIR.setter
+    def CHROMA_PERSIST_DIR(self, value: str) -> None:
+        self._CHROMA_PERSIST_DIR = value
+
     EMBEDDING_PROVIDER: str = "sentence-transformers"
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    EMBEDDING_MODEL: str = "BAAI/bge-base-en-v1.5"
     MEMORY_SEARCH_TOP_K: int = 3
 
     # --- Logging ---

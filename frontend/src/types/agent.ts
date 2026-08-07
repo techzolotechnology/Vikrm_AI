@@ -10,6 +10,7 @@ export interface Agent {
   model: string;
   temperature: number;
   max_tokens: number;
+  version?: number;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;

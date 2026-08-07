@@ -47,11 +47,14 @@ def extract_json_array(text: str) -> list | None:
     return None
 
 
+from app.services.llm.base import normalize_content_chunk
+
+
 def build_synthesis_prompt(*, task: str, step_results: list[dict]) -> str:
     results_text = "\n\n".join(
-        f"[{s['agent_name']}] (subtask: {s['subtask']})\n{s['output']}"
+        f"[{s['agent_name']}] (subtask: {s['subtask']})\n{normalize_content_chunk(s['output'])}"
         for s in step_results
-        if s["status"] == "success"
+        if s.get("status") == "success"
     )
     return (
         f"You coordinated a team to complete this task: {task}\n\n"

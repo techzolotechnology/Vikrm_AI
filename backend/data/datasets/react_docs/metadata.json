@@ -1,0 +1,12 @@
+{
+  "dataset_name": "react_docs",
+  "hf_path": "docs/react",
+  "description": "Official React 19 documentation and hooks reference.",
+  "language": "typescript",
+  "framework": "react",
+  "document_count": 7,
+  "size_bytes": 4252,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\react_docs\\index"
+}

@@ -1,0 +1,12 @@
+{
+  "dataset_name": "sql_examples",
+  "hf_path": "docs/sql",
+  "description": "SQL query patterns, CTEs, indexing, and PostgreSQL schemas.",
+  "language": "sql",
+  "framework": "postgresql",
+  "document_count": 7,
+  "size_bytes": 4336,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\sql_examples\\index"
+}

@@ -17,11 +17,19 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
+is_sqlite = settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite")
+engine_kwargs = {
+    "echo": settings.DEBUG,
+}
+if not is_sqlite:
+    engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+    })
+
 engine = create_async_engine(
     settings.SQLALCHEMY_DATABASE_URI,
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-    pool_recycle=3600,
+    **engine_kwargs
 )
 
 AsyncSessionLocal = async_sessionmaker(

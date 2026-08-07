@@ -10,8 +10,6 @@ export function useDocuments() {
       const { data } = await apiClient.get<DocumentItem[]>("/documents");
       return data;
     },
-    // Poll while any document is still processing, so status flips to
-    // ready/failed in the UI without a manual refresh.
     refetchInterval: (query) => {
       const docs = query.state.data as DocumentItem[] | undefined;
       const stillProcessing = docs?.some((d) => d.status === "processing");
@@ -46,6 +44,31 @@ export function useDeleteDocument() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
+  });
+}
+
+export function useRenameDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ documentId, filename }: { documentId: number; filename: string }) => {
+      const { data } = await apiClient.patch<DocumentItem>(`/documents/${documentId}`, { filename });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    },
+  });
+}
+
+export function useDocumentContent(documentId: number | null) {
+  return useQuery({
+    queryKey: ["document-content", documentId],
+    queryFn: async () => {
+      if (!documentId) return null;
+      const { data } = await apiClient.get<{ filename: string; chunks: string[] }>(`/documents/${documentId}/content`);
+      return data;
+    },
+    enabled: !!documentId,
   });
 }
 

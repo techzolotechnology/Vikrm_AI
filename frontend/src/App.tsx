@@ -3,49 +3,47 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AnimatePresence, motion } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
-import { NavTabs } from "@/components/nav-tabs";
 import { AdminRoute } from "@/components/admin-route";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { NavTabs } from "@/components/nav-tabs";
 import { ProtectedRoute } from "@/components/protected-route";
 import { ToastProvider } from "@/components/toast-provider";
 import { useAuthStore } from "@/store/use-auth-store";
 
-// Lazy-loaded authenticated pages
+// ─── Public Pages (eagerly loaded) ────────────────────────────────────────────
+import { Landing } from "@/pages/landing";
+import { VerifyEmail } from "@/pages/verify-email";
+import { ResetPassword } from "@/pages/reset-password";
+
+// ─── Authenticated Pages (lazy loaded for perf) ────────────────────────────
 const Dashboard = lazy(() => import("@/pages/dashboard").then((m) => ({ default: m.Dashboard })));
+const Workspace = lazy(() => import("@/pages/workspace").then((m) => ({ default: m.Workspace })));
 const Chat = lazy(() => import("@/pages/chat").then((m) => ({ default: m.Chat })));
 const Agents = lazy(() => import("@/pages/agents").then((m) => ({ default: m.Agents })));
-const MemoryViewer = lazy(() =>
-  import("@/pages/memory").then((m) => ({ default: m.MemoryViewer })),
-);
+const MemoryViewer = lazy(() => import("@/pages/memory").then((m) => ({ default: m.MemoryViewer })));
 const Documents = lazy(() => import("@/pages/documents").then((m) => ({ default: m.Documents })));
 const Workflows = lazy(() => import("@/pages/workflows").then((m) => ({ default: m.Workflows })));
-const WorkflowBuilder = lazy(() =>
-  import("@/pages/workflow-builder").then((m) => ({ default: m.WorkflowBuilder })),
-);
+const WorkflowBuilder = lazy(() => import("@/pages/workflow-builder").then((m) => ({ default: m.WorkflowBuilder })));
 const Tools = lazy(() => import("@/pages/tools").then((m) => ({ default: m.Tools })));
 const Teams = lazy(() => import("@/pages/teams").then((m) => ({ default: m.Teams })));
+const Settings = lazy(() => import("@/pages/settings").then((m) => ({ default: m.Settings })));
 const Admin = lazy(() => import("@/pages/admin").then((m) => ({ default: m.Admin })));
 
-// Public pages (lazy-loaded)
-const Landing = lazy(() => import("@/pages/landing").then((m) => ({ default: m.Landing })));
-const VerifyEmail = lazy(() =>
-  import("@/pages/verify-email").then((m) => ({ default: m.VerifyEmail })),
-);
-const ResetPassword = lazy(() =>
-  import("@/pages/reset-password").then((m) => ({ default: m.ResetPassword })),
-);
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
+
+// ─── Page Loading Fallback ────────────────────────────────────────────────────
 
 function PageFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-brand font-display text-base font-bold text-white">
-          V
-          <div className="absolute inset-0 rounded-2xl bg-gradient-brand opacity-40 blur-xl" />
-        </div>
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-        <p className="font-mono text-[11px] text-white/30">Initializing Vikrm Engine...</p>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+          className="h-8 w-8 rounded-full border-2 border-white/10 border-t-primary"
+        />
+        <p className="font-mono text-xs text-white/30">Loading...</p>
       </div>
     </div>
   );
@@ -73,7 +71,7 @@ function AppShell() {
   const showNav = isAuthenticated && !isPublicPage && !isWorkflowBuilder;
 
   return (
-    <>
+    <ErrorBoundary fallbackTitle="Application Shell Error">
       {showNav && <NavTabs onExpandChange={setSidebarExpanded} />}
 
       <motion.div
@@ -83,8 +81,8 @@ function AppShell() {
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         className="min-h-screen"
       >
-        <Suspense fallback={<PageFallback />}>
-          <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+          <Suspense fallback={<PageFallback />}>
             <Routes location={location} key={location.pathname}>
               {/* Root redirect */}
               <Route path="/" element={<RootRedirect />} />
@@ -101,6 +99,14 @@ function AppShell() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/workspace"
+                element={
+                  <ProtectedRoute>
+                    <Workspace />
                   </ProtectedRoute>
                 }
               />
@@ -136,6 +142,7 @@ function AppShell() {
                   </ProtectedRoute>
                 }
               />
+
               <Route
                 path="/workflows"
                 element={
@@ -178,25 +185,43 @@ function AppShell() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </AnimatePresence>
-        </Suspense>
+          </Suspense>
+        </AnimatePresence>
       </motion.div>
-    </>
+    </ErrorBoundary>
   );
 }
 
 export default function App() {
-  return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <BrowserRouter>
-        <ToastProvider>
+  const content = (
+    <BrowserRouter>
+      <ToastProvider>
+        <ErrorBoundary fallbackTitle="Vikrm AI Platform Error">
           <AppShell />
-        </ToastProvider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+        </ErrorBoundary>
+      </ToastProvider>
+    </BrowserRouter>
   );
+
+  if (googleClientId && googleClientId.trim() !== "") {
+    return (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        {content}
+      </GoogleOAuthProvider>
+    );
+  }
+
+  return content;
 }

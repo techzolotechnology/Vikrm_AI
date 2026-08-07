@@ -38,16 +38,11 @@ export function useDeleteAgent() {
   });
 }
 
-export function useDuplicateAgent() {
-  const queryClient = useQueryClient();
+export function useTestAgent() {
   return useMutation({
-    mutationFn: async (agentId: number) => {
-      const { data } = await apiClient.post<Agent>(`/agents/${agentId}/duplicate`);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agents"] });
+    mutationFn: async ({ agentId, prompt }: { agentId: number; prompt: string }) => {
+      const { data } = await apiClient.post<{ output: string }>(`/agents/${agentId}/test`, { prompt });
+      return data.output;
     },
   });
 }
-

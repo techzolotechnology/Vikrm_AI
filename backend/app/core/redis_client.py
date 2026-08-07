@@ -13,6 +13,8 @@ redis_pool = redis.ConnectionPool.from_url(
     settings.REDIS_URL,
     decode_responses=True,
     max_connections=20,
+    socket_timeout=2.0,
+    socket_connect_timeout=2.0,
 )
 
 

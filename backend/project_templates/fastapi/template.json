@@ -1,0 +1,16 @@
+{
+  "key": "fastapi",
+  "title": "FastAPI Async Microservice Backend",
+  "description": "High-performance Python FastAPI service with Pydantic v2, CORS, and Gunicorn/Uvicorn config.",
+  "category": "backend",
+  "language": "python",
+  "framework": "fastapi",
+  "structure": [
+    "app/main.py",
+    "app/api/v1/endpoints.py",
+    "app/core/config.py",
+    "requirements.txt",
+    "Dockerfile",
+    "README.md"
+  ]
+}

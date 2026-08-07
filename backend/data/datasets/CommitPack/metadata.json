@@ -1,0 +1,12 @@
+{
+  "dataset_name": "CommitPack",
+  "hf_path": "bigcode/commitpackft",
+  "description": "CommitPack & The Stack subset of code commits, diffs, and snippets.",
+  "language": "multi",
+  "framework": "git",
+  "document_count": 7,
+  "size_bytes": 4256,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\CommitPack\\index"
+}

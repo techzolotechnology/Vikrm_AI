@@ -1,0 +1,12 @@
+{
+  "dataset_name": "tailwind_docs",
+  "hf_path": "docs/tailwind",
+  "description": "Tailwind CSS v3/v4 design tokens and utility reference.",
+  "language": "css",
+  "framework": "tailwind",
+  "document_count": 7,
+  "size_bytes": 4378,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\tailwind_docs\\index"
+}

@@ -1,16 +1,10 @@
 """
-Memory service.
-
-Every memory write does two things: a SQL row (canonical metadata,
-used by the Memory Viewer and ordinary CRUD) and a ChromaDB upsert
-(the embedding, used for semantic search). The SQL row's `id` is the
-ChromaDB document id, so the two stores never drift out of sync as
-long as both operations run in the same call — if the ChromaDB write
-fails, the SQL row is rolled back rather than left orphaned.
+Memory service with update, type filter, pin, and archive support.
 """
-from sqlalchemy.ext.asyncio import AsyncSession
-
 import asyncio
+from typing import Sequence
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.vector_store import VectorStore
 from app.models.memory import Memory, MemoryType
@@ -34,9 +28,14 @@ class MemoryService:
         content: str,
         memory_type: MemoryType = MemoryType.FACT,
         agent_id: int | None = None,
+        is_pinned: bool = False,
     ) -> Memory:
         memory = await self._memories.create(
-            user_id=user_id, content=content, memory_type=memory_type, agent_id=agent_id
+            user_id=user_id,
+            content=content,
+            memory_type=memory_type,
+            agent_id=agent_id,
+            is_pinned=is_pinned,
         )
 
         vectors = await asyncio.to_thread(self._embeddings.embed, [content])
@@ -55,11 +54,47 @@ class MemoryService:
         await self._session.commit()
         return memory
 
+    async def update_memory(
+        self,
+        *,
+        memory_id: int,
+        user_id: int,
+        content: str | None = None,
+        memory_type: MemoryType | None = None,
+        is_pinned: bool | None = None,
+        is_archived: bool | None = None,
+    ) -> Memory:
+        memory = await self._memories.get_by_id(memory_id, user_id=user_id)
+        if memory is None:
+            raise ValueError("Memory entry not found")
+
+        updated = await self._memories.update(
+            memory,
+            content=content,
+            memory_type=memory_type,
+            is_pinned=is_pinned,
+            is_archived=is_archived,
+        )
+
+        if content is not None:
+            vectors = await asyncio.to_thread(self._embeddings.embed, [content])
+            vector = vectors[0]
+            metadata: dict = {"user_id": user_id}
+            if updated.agent_id is not None:
+                metadata["agent_id"] = updated.agent_id
+            self._vector_store.upsert(
+                ids=[str(updated.id)],
+                embeddings=[vector],
+                documents=[content],
+                metadatas=[metadata],
+            )
+
+        await self._session.commit()
+        return updated
+
     async def search_memories(
         self, *, user_id: int, query: str, top_k: int = 3
     ) -> list[tuple[Memory, float]]:
-        """Returns (memory, distance) pairs, closest first. Distance is
-        raw cosine distance from ChromaDB — lower is more similar."""
         if not query.strip():
             return []
 
@@ -82,8 +117,17 @@ class MemoryService:
                 results.append((memory, match["distance"]))
         return results
 
-    async def list_memories(self, *, user_id: int) -> list[Memory]:
-        return await self._memories.list_for_user(user_id)
+    async def list_memories(
+        self,
+        *,
+        user_id: int,
+        memory_type: str | None = None,
+        is_archived: bool | None = False,
+        is_pinned: bool | None = None,
+    ) -> Sequence[Memory]:
+        return await self._memories.list_for_user(
+            user_id, memory_type=memory_type, is_archived=is_archived, is_pinned=is_pinned
+        )
 
     async def get_memory(self, *, memory_id: int, user_id: int) -> Memory | None:
         return await self._memories.get_by_id(memory_id, user_id=user_id)

@@ -21,6 +21,14 @@ import {
   ArrowRight,
   Check,
   HelpCircle,
+  Lock,
+  Cpu,
+  Target,
+  LineChart,
+  Building2,
+  Heart,
+  GraduationCap,
+  Factory,
 } from "lucide-react";
 
 import { AuthModal } from "@/components/auth-modal";
@@ -56,16 +64,22 @@ interface WorkflowNode {
   delay: number;
 }
 
-interface PricingTier {
-  name: string;
-  badge?: string;
+interface Capability {
+  icon: React.ElementType;
+  title: string;
   description: string;
-  monthlyPrice: number;
-  annualPrice: number;
-  popular?: boolean;
-  features: string[];
-  cta: string;
-  buttonVariant: "primary" | "glass";
+  color: string;
+  gradient: string;
+  points: string[];
+}
+
+interface UseCase {
+  icon: React.ElementType;
+  industry: string;
+  title: string;
+  description: string;
+  color: string;
+  tags: string[];
 }
 
 interface Testimonial {
@@ -88,21 +102,21 @@ const FEATURES: Feature[] = [
   {
     icon: Bot,
     title: "AI Agent Builder",
-    description: "Build sophisticated AI agents with custom instructions, goals, personality, and model settings.",
+    description: "Build sophisticated AI agents with custom instructions, goals, unique personality, and model configuration.",
     color: "#7C3AED",
     gradient: "from-violet-500/20 to-transparent",
   },
   {
     icon: Workflow,
     title: "Workflow Automation",
-    description: "Chain agents, tools, and logic gates into powerful automated pipelines with a visual drag-and-drop editor.",
+    description: "Chain agents, tools, and logic gates into powerful automated pipelines with a visual drag-and-drop builder.",
     color: "#22D3EE",
     gradient: "from-cyan-500/20 to-transparent",
   },
   {
     icon: Brain,
     title: "Long-Term Memory",
-    description: "Agents remember context across sessions using semantic vector search — just like human memory.",
+    description: "Agents remember context across sessions using semantic search — delivering truly personalized interactions.",
     color: "#EC4899",
     gradient: "from-pink-500/20 to-transparent",
   },
@@ -115,29 +129,29 @@ const FEATURES: Feature[] = [
   },
   {
     icon: Database,
-    title: "RAG Knowledge Base",
-    description: "Upload PDFs, docs, and data. Agents retrieve and reason over your private knowledge with RAG.",
+    title: "Knowledge Base RAG",
+    description: "Upload documents and data. Agents retrieve and reason over your private knowledge with precision.",
     color: "#F59E0B",
     gradient: "from-amber-500/20 to-transparent",
   },
   {
     icon: Wrench,
-    title: "Tool Calling",
-    description: "Extend agent capabilities with custom tools — web search, code execution, API calls, and more.",
+    title: "Intelligent Tool Use",
+    description: "Extend agent capabilities with custom integrations — web access, code execution, data queries, and more.",
     color: "#7C3AED",
     gradient: "from-violet-500/20 to-transparent",
   },
   {
     icon: Shield,
-    title: "Local First",
-    description: "Run entirely on your machine with Ollama. Your data never leaves unless you choose cloud providers.",
+    title: "Privacy by Design",
+    description: "Run entirely on your infrastructure. Your data stays within your control — always.",
     color: "#22D3EE",
     gradient: "from-cyan-500/20 to-transparent",
   },
   {
     icon: Globe,
-    title: "Multi-LLM Support",
-    description: "Switch seamlessly between Ollama, OpenAI, Anthropic, and more. One platform, any model.",
+    title: "Multi-Model Support",
+    description: "Switch seamlessly between AI models from different providers. One platform, any intelligence.",
     color: "#EC4899",
     gradient: "from-pink-500/20 to-transparent",
   },
@@ -146,9 +160,9 @@ const FEATURES: Feature[] = [
 const WORKFLOW_NODES: WorkflowNode[] = [
   { label: "Start Trigger", icon: Play, color: "#22C55E", delay: 0 },
   { label: "Research Agent", icon: Bot, color: "#7C3AED", delay: 0.4 },
-  { label: "Vector Memory Search", icon: Database, color: "#22D3EE", delay: 0.8 },
+  { label: "Knowledge Search", icon: Database, color: "#22D3EE", delay: 0.8 },
   { label: "Decision Gate", icon: Zap, color: "#F59E0B", delay: 1.2 },
-  { label: "Code Execution Agent", icon: Code2, color: "#EC4899", delay: 1.6 },
+  { label: "Analysis Agent", icon: Code2, color: "#EC4899", delay: 1.6 },
   { label: "Synthesis Output", icon: Sparkles, color: "#22C55E", delay: 2.0 },
 ];
 
@@ -156,94 +170,120 @@ const AGENTS: Agent[] = [
   {
     name: "Aria",
     description: "Senior Research Analyst with deep domain expertise and data synthesis capabilities.",
-    model: "llama3.2:70b",
+    model: "Intelligence Model",
     status: "active",
     color: "#7C3AED",
     initials: "AR",
     task: "Analyzing market trends",
-    memory: "128 memories",
+    memory: "128 knowledge entries",
   },
   {
     name: "Nova",
-    description: "Full-Stack System Architect specializing in scalable API design and automated refactoring.",
-    model: "deepseek-coder:33b",
+    description: "Full-Stack System Architect specializing in scalable design and automated refactoring.",
+    model: "Advanced Reasoning",
     status: "working",
     color: "#22D3EE",
     initials: "NV",
     task: "Writing integration tests",
-    memory: "74 memories",
+    memory: "74 knowledge entries",
   },
   {
     name: "Echo",
-    description: "Creative Content Specialist generating structured documentation and release notes.",
-    model: "mistral:7b",
+    description: "Creative Content Specialist generating structured documentation and communication.",
+    model: "Creative Intelligence",
     status: "idle",
     color: "#EC4899",
     initials: "EC",
     task: "Waiting for next assignment",
-    memory: "52 memories",
+    memory: "52 knowledge entries",
   },
 ];
 
-const PRICING_TIERS: PricingTier[] = [
+const CAPABILITIES: Capability[] = [
   {
-    name: "Community",
-    description: "Perfect for developers and hobbyists exploring local AI automation.",
-    monthlyPrice: 0,
-    annualPrice: 0,
-    features: [
-      "Local-First Execution (Ollama)",
-      "Unlimited Local Conversations",
-      "Up to 5 Custom AI Agents",
-      "Visual Drag-and-Drop Editor",
-      "Vector Memory (ChromaDB)",
-      "Community Discord Support",
+    icon: Cpu,
+    title: "Intelligent Automation",
+    description: "Automate any knowledge workflow with AI agents that plan, execute, and adapt in real-time.",
+    color: "#7C3AED",
+    gradient: "from-violet-500/15 to-transparent",
+    points: [
+      "Multi-step reasoning pipelines",
+      "Autonomous decision making",
+      "Self-correcting execution loops",
+      "Parallel agent coordination",
     ],
-    cta: "Start Free",
-    buttonVariant: "glass",
   },
   {
-    name: "Pro",
-    badge: "Most Popular",
-    popular: true,
-    description: "Ideal for power users, solo founders, and engineering teams.",
-    monthlyPrice: 29,
-    annualPrice: 24,
-    features: [
-      "Everything in Community",
-      "Unlimited Custom AI Agents",
-      "Multi-Agent Team Orchestration",
-      "RAG Document Processing (PDF/Docx/CSV)",
-      "Sandboxed Python Code Execution",
-      "Cloud LLM API Access (OpenAI/Anthropic)",
-      "Priority Email & Chat Support",
+    icon: Lock,
+    title: "Enterprise Security",
+    description: "Built for organizations that cannot compromise on data privacy or operational security.",
+    color: "#22C55E",
+    gradient: "from-emerald-500/15 to-transparent",
+    points: [
+      "On-premises deployment",
+      "Role-based access control",
+      "Audit logging & compliance",
+      "Zero data exfiltration",
     ],
-    cta: "Get Started Pro",
-    buttonVariant: "primary",
   },
   {
-    name: "Enterprise",
-    badge: "Custom Solutions",
-    description: "Built for organizations requiring custom security, SSO, and dedicated infrastructure.",
-    monthlyPrice: 99,
-    annualPrice: 79,
-    features: [
-      "Everything in Pro",
-      "Dedicated Air-Gapped Deployment",
-      "Custom SSO & SAML Integration",
-      "Audit Logging & RBAC Controls",
-      "Custom Tooling Integration SLA",
-      "Dedicated Solutions Engineer",
-      "24/7 Phone & Urgent Support",
+    icon: Target,
+    title: "Domain Knowledge",
+    description: "Connect your private knowledge bases to give agents accurate, contextual intelligence.",
+    color: "#22D3EE",
+    gradient: "from-cyan-500/15 to-transparent",
+    points: [
+      "Document ingestion & indexing",
+      "Semantic knowledge retrieval",
+      "Real-time knowledge updates",
+      "Multi-format support",
     ],
-    cta: "Contact Enterprise",
-    buttonVariant: "glass",
+  },
+  {
+    icon: LineChart,
+    title: "Measurable Outcomes",
+    description: "Track agent performance, workflow efficiency, and ROI with detailed analytics.",
+    color: "#F59E0B",
+    gradient: "from-amber-500/15 to-transparent",
+    points: [
+      "Execution timeline analytics",
+      "Performance benchmarking",
+      "Cost optimization insights",
+      "Usage dashboards",
+    ],
+  },
+];
+
+const USE_CASES: UseCase[] = [
+  {
+    icon: Heart,
+    industry: "Healthcare",
+    title: "Clinical Research Acceleration",
+    description: "AI agents analyze patient records, extract insights from research literature, and support clinical decision pipelines — fully private, fully compliant.",
+    color: "#EC4899",
+    tags: ["Research Analysis", "Document Processing", "Compliance-Ready"],
+  },
+  {
+    icon: Building2,
+    industry: "Finance",
+    title: "Intelligent Due Diligence",
+    description: "Automate financial document review, risk assessment pipelines, and reporting workflows. Agents synthesize complex data into actionable intelligence.",
+    color: "#22D3EE",
+    tags: ["Document Review", "Risk Analysis", "Report Generation"],
+  },
+  {
+    icon: Factory,
+    industry: "Engineering",
+    title: "Automated Development Workflows",
+    description: "Multi-agent teams handle code review, documentation generation, test writing, and deployment validation — freeing engineers for creative work.",
+    color: "#7C3AED",
+    tags: ["Code Analysis", "Documentation", "Test Automation"],
   },
 ];
 
 const TESTIMONIALS: Testimonial[] = [
   {
-    quote: "Vikrm completely transformed our engineering workflow. Running agents locally with full RAG privacy means our IP never touches third-party clouds.",
+    quote: "Vikrm completely transformed our engineering workflow. Running agents with full privacy means our IP never touches third-party clouds.",
     author: "Elena Rostova",
     role: "VP of Engineering",
     company: "Apex Systems",
@@ -251,7 +291,7 @@ const TESTIMONIALS: Testimonial[] = [
     stars: 5,
   },
   {
-    quote: "The visual workflow builder and multi-agent team delegation feel years ahead of standard chat tools. It's the AI platform I've always wanted.",
+    quote: "The visual workflow builder and multi-agent team delegation feel years ahead of standard AI tools. It's the platform I've always wanted.",
     author: "Marcus Vance",
     role: "AI Lead Architect",
     company: "Hyperion Labs",
@@ -259,7 +299,7 @@ const TESTIMONIALS: Testimonial[] = [
     stars: 5,
   },
   {
-    quote: "The combination of vector memory search, Python tool execution, and zero telemetry makes Vikrm an absolute staple in our security stack.",
+    quote: "The combination of semantic memory search, intelligent tool use, and zero telemetry makes Vikrm an absolute staple in our security stack.",
     author: "Sophia Chen",
     role: "Principal Security Engineer",
     company: "Vanguard Tech",
@@ -271,27 +311,27 @@ const TESTIMONIALS: Testimonial[] = [
 const FAQS: FAQItem[] = [
   {
     question: "Is my data completely private when using Vikrm?",
-    answer: "Yes, 100%. Vikrm is local-first by design. When paired with Ollama or local model runners, all prompt data, vector embeddings, and memory indexes stay on your local hardware or private server.",
+    answer: "Yes, 100%. Vikrm is privacy-first by design. When deployed on your own infrastructure, all conversation data, document indexes, and memory entries remain exclusively on your hardware or private server. Nothing is shared externally.",
   },
   {
-    question: "Can I use commercial cloud models like OpenAI or Anthropic?",
-    answer: "Absolutely. Vikrm's modular LLM Provider architecture supports seamless switching between local Ollama models and cloud providers like OpenAI, Anthropic, Gemini, or Groq.",
+    question: "Can I connect different AI models?",
+    answer: "Absolutely. Vikrm's modular intelligence layer supports seamless switching between local and cloud-based AI models from various providers. One platform gives you the flexibility to use any model that fits your needs.",
   },
   {
-    question: "How does the Multi-Agent Orchestration work?",
-    answer: "Agent Teams utilize a designated Manager Agent that dynamically breaks down your high-level objective into subtasks, assigns them to specialized member agents, monitors execution, and synthesizes the final result.",
+    question: "How does Multi-Agent Orchestration work?",
+    answer: "Agent Teams use a designated Manager Agent that breaks down your objective into subtasks, assigns them to specialized member agents, monitors execution, and synthesizes the final result — all automatically.",
   },
   {
-    question: "What document formats are supported in RAG Knowledge Bases?",
-    answer: "Vikrm natively parses `.txt`, `.md`, `.pdf`, `.docx`, and `.csv` files using sentence-aware chunking with customizable overlap to preserve semantic context.",
+    question: "What document formats are supported?",
+    answer: "Vikrm natively processes text files, PDFs, Word documents, Markdown, and CSV files. The platform uses intelligent chunking to preserve semantic context and enable precise knowledge retrieval.",
   },
   {
-    question: "How do I deploy Vikrm in a production team environment?",
-    answer: "We provide production-ready Docker Compose manifests (`docker-compose.prod.yml`) with Nginx reverse proxying, MySQL 8, Redis rate-limiting, and automated database migrations.",
+    question: "How do I deploy Vikrm for my organization?",
+    answer: "Vikrm comes with production-ready deployment configurations that support full on-premises installation. The setup is designed for easy deployment by your infrastructure team with minimal configuration.",
   },
 ];
 
-const NAV_LINKS = ["Features", "AI Fleet", "Workflows", "Pricing", "Testimonials", "FAQ"];
+const NAV_LINKS = ["Features", "AI Fleet", "Workflows", "Capabilities", "Testimonials", "FAQ"];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -438,8 +478,8 @@ function DashboardPreview() {
   const stats = [
     { label: "Conversations", value: "2,847", color: "#7C3AED" },
     { label: "Active Agents", value: "12", color: "#22D3EE" },
-    { label: "Vector Memories", value: "4,392", color: "#EC4899" },
-    { label: "Tool Executions", value: "891", color: "#22C55E" },
+    { label: "Knowledge Entries", value: "4,392", color: "#EC4899" },
+    { label: "Workflows Run", value: "891", color: "#22C55E" },
   ];
 
   return (
@@ -452,7 +492,7 @@ function DashboardPreview() {
           <div className="h-2.5 w-2.5 rounded-full bg-success/60" />
         </div>
         <div className="flex h-5 items-center rounded bg-white/5 px-3 text-[10px] text-white/40 font-mono">
-          vikrm.local · AI Operating System
+          Vikrm Intelligence Platform
         </div>
       </div>
       {/* Mock content */}
@@ -471,7 +511,7 @@ function DashboardPreview() {
         {/* Mock chart */}
         <div className="rounded-xl border border-border bg-surface/30 p-4 mb-4">
           <div className="flex items-center justify-between text-xs text-white/50 mb-3 font-mono">
-            <span>Workflow Runs · Last 7 days</span>
+            <span>Workflow Activity · Last 7 days</span>
             <span className="text-success text-[11px]">+24.5% vs last week</span>
           </div>
           <div className="flex items-end gap-2 h-20">
@@ -493,7 +533,7 @@ function DashboardPreview() {
         </div>
         {/* Activity feed */}
         <div className="space-y-2">
-          {["Research Agent completed market analysis", "Workflow #14 (RAG Pipeline) executed cleanly", "Indexed 24 new knowledge documents", "Agent Team 'DevOps Fleet' finished run"].map(
+          {["Research agent completed market analysis", "Automation pipeline executed successfully", "Indexed 24 new knowledge documents", "Agent team finished collaborative run"].map(
             (item, i) => (
               <div key={i} className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2 border border-white/[0.03]">
                 <div className="h-2 w-2 rounded-full bg-primary/80 animate-pulse" />
@@ -548,7 +588,6 @@ function FAQAccordion({ item }: { item: FAQItem }) {
 
 export function Landing() {
   const [authModal, setAuthModal] = useState<"signin" | "register" | null>(null);
-  const [isAnnual, setIsAnnual] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
   const navigate = useNavigate();
@@ -636,7 +675,7 @@ export function Landing() {
             className="group relative flex items-center gap-2 overflow-hidden rounded-full border border-primary/40 bg-primary/20 px-5 py-2 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-primary/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.4)]"
           >
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Get Started Free
+            Get Started
             <ChevronRight className="h-3.5 w-3.5 text-white/50 transition-transform group-hover:translate-x-0.5" />
           </button>
         </motion.div>
@@ -662,7 +701,7 @@ export function Landing() {
             className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary backdrop-blur-md"
           >
             <Star className="h-3.5 w-3.5 text-warning fill-warning" />
-            Local-First · Zero Cloud Lock-In · Production Ready
+            Privacy-First · Enterprise Ready · Multi-Model
             <motion.div
               className="h-1.5 w-1.5 rounded-full bg-primary"
               animate={{ opacity: [1, 0.3, 1] }}
@@ -690,8 +729,9 @@ export function Landing() {
             transition={{ duration: 0.7, delay: 0.25 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-white/60 leading-relaxed font-normal"
           >
-            Vikrm is the premium AI automation platform that runs locally or on your infrastructure.
-            Build custom agents, visually compose DAG workflows, and query vector knowledge bases — all with complete data privacy.
+            Vikrm is the premium AI automation platform built for organizations that demand performance, 
+            privacy, and complete control. Build custom agents, compose visual workflows, and 
+            connect your private knowledge — all on your infrastructure.
           </motion.p>
 
           {/* CTAs */}
@@ -706,7 +746,7 @@ export function Landing() {
               className="btn-primary text-base px-8 py-3.5 rounded-2xl shadow-xl hover:shadow-primary/30"
             >
               <Zap className="h-4 w-4" />
-              Start Building Free
+              Start Building
               <ArrowRight className="h-4 w-4" />
             </button>
             <button
@@ -727,17 +767,17 @@ export function Landing() {
           >
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-success" />
-              <span>Self-Hosted & Private</span>
+              <span>Private by Default</span>
             </div>
             <div className="h-3 w-px bg-border" />
             <div className="flex items-center gap-1.5">
               <Bot className="h-4 w-4 text-primary" />
-              <span>Multi-LLM Native</span>
+              <span>Multi-Model Intelligence</span>
             </div>
             <div className="h-3 w-px bg-border" />
             <div className="flex items-center gap-1.5">
               <Database className="h-4 w-4 text-accent" />
-              <span>ChromaDB Vector RAG</span>
+              <span>Semantic Knowledge Base</span>
             </div>
           </motion.div>
         </motion.div>
@@ -769,13 +809,13 @@ export function Landing() {
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-medium text-accent">
               <Sparkles className="h-3.5 w-3.5" />
-              Full-Stack AI Architecture
+              Complete AI Architecture
             </div>
             <h2 className="font-display text-4xl font-extrabold text-white md:text-5xl">
-              A Complete <span className="gradient-text">AI Operating System</span>
+              A Complete <span className="gradient-text">AI Intelligence Platform</span>
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/60">
-              Vikrm provides every core building block required to create, deploy, and scale intelligent AI applications.
+              Vikrm provides every core capability required to create, deploy, and scale intelligent AI applications — without compromise.
             </p>
           </motion.div>
 
@@ -825,7 +865,7 @@ export function Landing() {
               Meet Your <span className="gradient-text-warm">Autonomous AI Team</span>
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/60">
-              Create purpose-built agents with unique personas, system prompts, memory retention, and tool permissions.
+              Create purpose-built agents with unique personas, custom instructions, memory retention, and tool access.
             </p>
           </motion.div>
 
@@ -849,7 +889,7 @@ export function Landing() {
                       {agent.initials}
                     </div>
                     <div
-                      className={cn("status-dot absolute -bottom-0.5 -right-0.5", agent.status)}
+                      className={cn("status-dot absolute -bottom-0.5 -right-0.5", agent.status === "active" ? "online" : agent.status === "working" ? "online" : "idle")}
                     />
                   </div>
                   <div>
@@ -870,11 +910,11 @@ export function Landing() {
                 {/* Info rows */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3.5 py-2.5 border border-white/[0.02]">
-                    <span className="text-xs text-white/40">Model</span>
+                    <span className="text-xs text-white/40">Intelligence</span>
                     <span className="font-mono text-xs text-white/80">{agent.model}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3.5 py-2.5 border border-white/[0.02]">
-                    <span className="text-xs text-white/40">Vector Memory</span>
+                    <span className="text-xs text-white/40">Knowledge</span>
                     <span className="text-xs text-white/80">{agent.memory}</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-xl bg-white/[0.03] px-3.5 py-2.5 border border-white/[0.02]">
@@ -904,21 +944,21 @@ export function Landing() {
             >
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
                 <Workflow className="h-3.5 w-3.5" />
-                Visual DAG Orchestrator
+                Visual Workflow Orchestrator
               </div>
               <h2 className="font-display text-4xl font-extrabold text-white md:text-5xl mb-6 leading-tight">
                 Automate Anything with <span className="gradient-text">Visual Workflows</span>
               </h2>
               <p className="text-white/60 leading-relaxed mb-8">
-                Chain agents, tools, calculator ASTs, and condition branches into deterministic pipelines. 
-                Our React Flow visual builder gives you full control over execution topology.
+                Chain agents, tools, and conditional logic into deterministic automation pipelines. 
+                The visual builder gives you full control over execution topology with precision and clarity.
               </p>
               <ul className="space-y-3.5 mb-8">
                 {[
-                  "Drag & drop node canvas editing native DAG JSON",
-                  "Conditional branching with strict condition isolation",
-                  "Sandboxed Python execution & SSRF-guarded HTTP tools",
-                  "Step-by-step timeline execution replay & metrics",
+                  "Drag & drop node canvas with intelligent snapping",
+                  "Conditional branching and parallel execution paths",
+                  "Integrated tool calls with secure sandboxing",
+                  "Step-by-step execution timeline and live metrics",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm text-white/80">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary">
@@ -949,7 +989,7 @@ export function Landing() {
                 <div className="mb-4 flex items-center justify-between text-xs text-white/40 font-mono border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                    dag_execution_001
+                    automation_pipeline_001
                   </div>
                   <span className="text-[10px] text-white/30">240ms latency</span>
                 </div>
@@ -960,100 +1000,122 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ─── Pricing Section ─── */}
-      <section id="pricing" className="relative px-6 py-32 md:px-16 bg-white/[0.01] border-t border-white/[0.04]">
+      {/* ─── Capabilities Section (replaces Pricing) ─── */}
+      <section id="capabilities" className="relative px-6 py-32 md:px-16 bg-white/[0.01] border-t border-white/[0.04]">
         <div className="mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-12 text-center"
+            className="mb-16 text-center"
           >
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-4 py-1.5 text-xs font-medium text-warning">
-              <Zap className="h-3.5 w-3.5" />
-              Transparent Pricing
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+              Platform Capabilities
             </div>
             <h2 className="font-display text-4xl font-extrabold text-white md:text-5xl">
-              Simple Plans for <span className="gradient-text">Every Scale</span>
+              Built for <span className="gradient-text">Serious AI Work</span>
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/60">
-              Deploy open-source locally for free or upgrade for team orchestration and enterprise SLA.
+              Every capability is designed to meet the demands of production AI deployments — from solo developers to large organizations.
             </p>
-
-            {/* Toggle */}
-            <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-border bg-surface/50 p-1.5">
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={cn(
-                  "rounded-full px-5 py-2 text-xs font-medium transition-all",
-                  !isAnnual ? "bg-primary text-white shadow-md" : "text-white/50 hover:text-white",
-                )}
-              >
-                Monthly Billing
-              </button>
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={cn(
-                  "flex items-center gap-2 rounded-full px-5 py-2 text-xs font-medium transition-all",
-                  isAnnual ? "bg-primary text-white shadow-md" : "text-white/50 hover:text-white",
-                )}
-              >
-                Annual Billing
-                <span className="rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold text-success">
-                  Save 20%
-                </span>
-              </button>
-            </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3 items-stretch">
-            {PRICING_TIERS.map((tier, index) => {
-              const price = isAnnual ? tier.annualPrice : tier.monthlyPrice;
+          {/* Capabilities grid */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {CAPABILITIES.map((cap, index) => {
+              const Icon = cap.icon;
               return (
                 <motion.div
-                  key={tier.name}
+                  key={cap.title}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className={cn(
-                    "glass-card relative flex flex-col p-8 transition-all duration-300",
-                    tier.popular ? "border-primary/60 bg-surface/70 shadow-[0_0_40px_rgba(124,58,237,0.2)] md:-translate-y-2" : "border-white/[0.08]",
-                  )}
+                  className={`glass-card relative overflow-hidden p-7 border-white/[0.08] hover:border-primary/30 transition-all duration-300 bg-gradient-to-br ${cap.gradient}`}
                 >
-                  {tier.badge && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-brand px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-lg">
-                      {tier.badge}
+                  <div className="flex items-start gap-4 mb-5">
+                    <div
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${cap.color}20`, border: `1px solid ${cap.color}40` }}
+                    >
+                      <Icon className="h-6 w-6" style={{ color: cap.color }} strokeWidth={1.75} />
                     </div>
-                  )}
-
-                  <h3 className="font-display text-xl font-bold text-white mb-2">{tier.name}</h3>
-                  <p className="text-xs text-white/50 min-h-[36px] leading-relaxed mb-6">{tier.description}</p>
-
-                  <div className="mb-6 flex items-baseline gap-1">
-                    <span className="font-display text-4xl font-extrabold text-white">${price}</span>
-                    <span className="text-xs text-white/40">/ month</span>
+                    <div>
+                      <h3 className="font-display text-lg font-bold text-white">{cap.title}</h3>
+                      <p className="text-sm text-white/55 leading-relaxed mt-1">{cap.description}</p>
+                    </div>
                   </div>
-
-                  <ul className="space-y-3.5 mb-8 flex-1">
-                    {tier.features.map((feat) => (
-                      <li key={feat} className="flex items-center gap-3 text-xs text-white/80">
-                        <Check className="h-4 w-4 text-primary shrink-0" />
-                        {feat}
+                  <ul className="space-y-2.5">
+                    {cap.points.map((point) => (
+                      <li key={point} className="flex items-center gap-2.5 text-sm text-white/75">
+                        <div
+                          className="h-1.5 w-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: cap.color }}
+                        />
+                        {point}
                       </li>
                     ))}
                   </ul>
+                </motion.div>
+              );
+            })}
+          </div>
 
-                  <button
-                    onClick={() => setAuthModal("register")}
-                    className={cn(
-                      "w-full py-3.5 rounded-xl font-semibold text-sm transition-all",
-                      tier.buttonVariant === "primary" ? "btn-primary" : "btn-glass",
-                    )}
-                  >
-                    {tier.cta}
-                  </button>
+          {/* Use Cases */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mt-20 mb-12 text-center"
+          >
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-medium text-accent">
+              <GraduationCap className="h-3.5 w-3.5" />
+              Industry Use Cases
+            </div>
+            <h2 className="font-display text-3xl font-extrabold text-white md:text-4xl">
+              Trusted Across <span className="gradient-text">Every Sector</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {USE_CASES.map((uc, index) => {
+              const Icon = uc.icon;
+              return (
+                <motion.div
+                  key={uc.industry}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="glass-card p-6 border-white/[0.08] hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${uc.color}20`, border: `1px solid ${uc.color}40` }}
+                    >
+                      <Icon className="h-5 w-5" style={{ color: uc.color }} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: uc.color }}>{uc.industry}</div>
+                      <div className="font-display text-sm font-bold text-white">{uc.title}</div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-white/55 leading-relaxed mb-4">{uc.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {uc.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border px-2.5 py-0.5 text-[10px] font-medium"
+                        style={{ borderColor: `${uc.color}30`, color: uc.color, backgroundColor: `${uc.color}10` }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </motion.div>
               );
             })}
@@ -1073,10 +1135,10 @@ export function Landing() {
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-1.5 text-xs font-medium text-success">
               <Star className="h-3.5 w-3.5 fill-success text-success" />
-              Trusted by Engineers
+              Trusted by Leaders
             </div>
             <h2 className="font-display text-4xl font-extrabold text-white md:text-5xl">
-              Loved by <span className="gradient-text">AI Developers & Leaders</span>
+              Loved by <span className="gradient-text">AI Teams Worldwide</span>
             </h2>
           </motion.div>
 
@@ -1157,10 +1219,10 @@ export function Landing() {
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <h2 className="font-display text-4xl font-extrabold text-white md:text-6xl mb-6">
-            Ready to Build Your <span className="gradient-text">AI Automation Engine?</span>
+            Ready to Transform Your <span className="gradient-text">AI Workflows?</span>
           </h2>
           <p className="text-lg text-white/60 mb-10 leading-relaxed max-w-2xl mx-auto">
-            Join developers and teams automating complex tasks with zero data compromises.
+            Join innovative teams building intelligent automation with complete control over their data and infrastructure.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
@@ -1168,7 +1230,7 @@ export function Landing() {
               className="btn-primary text-base px-10 py-4 rounded-2xl shadow-xl hover:shadow-primary/30"
             >
               <Zap className="h-5 w-5" />
-              Get Started Free
+              Get Started Now
             </button>
             <button
               onClick={() => setAuthModal("signin")}
@@ -1193,15 +1255,15 @@ export function Landing() {
                 <span className="font-display text-lg font-bold text-white">Vikrm</span>
               </div>
               <p className="text-xs text-white/40 leading-relaxed max-w-xs">
-                Local-first AI Agent Automation Platform. Build, execute, and scale with total data privacy.
+                Privacy-first AI Agent Automation Platform. Build, execute, and scale with complete data sovereignty.
               </p>
             </div>
 
             {/* Links */}
             {[
-              { title: "Product", links: ["Features", "AI Fleet", "Workflows", "Pricing", "RAG Engine"] },
-              { title: "Developers", links: ["Documentation", "API Reference", "GitHub", "Changelog", "System Health"] },
-              { title: "Company", links: ["About", "Security", "Privacy Policy", "Terms of Service", "Support"] },
+              { title: "Platform", links: ["Features", "AI Fleet", "Workflows", "Capabilities", "Solutions"] },
+              { title: "Resources", links: ["Documentation", "Knowledge Base", "Integrations", "Changelog", "Support"] },
+              { title: "Company", links: ["About", "Security", "Privacy Policy", "Terms of Service", "Contact"] },
             ].map((col) => (
               <div key={col.title}>
                 <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-white/40">{col.title}</h4>
@@ -1220,7 +1282,7 @@ export function Landing() {
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-white/[0.06] pt-8">
             <p className="text-xs text-white/30 font-mono">
-              © 2026 Vikrm AI Platform. All rights reserved. · v1.0.0 Production Ready
+              © 2026 Vikrm AI Platform. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white transition-colors">

@@ -1,14 +1,8 @@
 """
-Document endpoints: upload (multipart), list, detail, delete, and a
-semantic chunk-search endpoint used both by a citation-viewer UI and
-internally by ChatService.
-
-Upload is processed synchronously (parse → chunk → embed → store)
-within the request — see RagService for why. Max upload size is
-enforced here rather than relying on a proxy default, so the error is
-a clear 413 rather than a generic connection reset.
+Document endpoints for uploading, listing, renaming, deleting, content previewing, and semantic search.
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -21,6 +15,15 @@ from app.services.rag_service import RagService
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20MB
+
+
+class RenameDocumentRequest(BaseModel):
+    filename: str
+
+
+class DocumentContentResponse(BaseModel):
+    filename: str
+    chunks: list[str]
 
 
 @router.get("", response_model=list[DocumentResponse])
@@ -76,6 +79,36 @@ async def get_document(
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return DocumentResponse.model_validate(document)
+
+
+@router.patch("/{document_id}", response_model=DocumentResponse)
+async def rename_document(
+    document_id: int,
+    body: RenameDocumentRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentResponse:
+    service = RagService(db)
+    document = await service.get_document(document_id=document_id, user_id=user.id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    renamed = await service.rename_document(document_id=document_id, user_id=user.id, new_filename=body.filename)
+    return DocumentResponse.model_validate(renamed)
+
+
+@router.get("/{document_id}/content", response_model=DocumentContentResponse)
+async def get_document_content(
+    document_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentContentResponse:
+    service = RagService(db)
+    document = await service.get_document(document_id=document_id, user_id=user.id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    chunks_meta = await service.get_document_chunks_preview(document_id=document_id, user_id=user.id)
+    chunks_text = [c.get("document", "") for c in chunks_meta if c.get("document")]
+    return DocumentContentResponse(filename=document.filename, chunks=chunks_text)
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)

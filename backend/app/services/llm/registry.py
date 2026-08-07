@@ -14,6 +14,7 @@ from app.services.llm.external_providers import (
     MistralProvider,
     OpenAIProvider,
     OpenRouterProvider,
+    QwenProvider,
 )
 from app.services.llm.ollama_provider import OllamaProvider
 
@@ -26,6 +27,7 @@ _PROVIDERS: dict[str, type[LLMProvider]] = {
     "openrouter": OpenRouterProvider,
     "deepseek": DeepSeekProvider,
     "mistral": MistralProvider,
+    "qwen": QwenProvider,
 }
 
 

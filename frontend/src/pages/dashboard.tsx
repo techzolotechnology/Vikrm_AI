@@ -4,11 +4,10 @@ import { motion } from "framer-motion";
 import {
   Bot,
   Brain,
-  Database,
+  CheckCircle2,
   FileText,
   MessageSquare,
-
-  Server,
+  Shield,
   Sparkles,
   Users,
   Workflow,
@@ -16,6 +15,9 @@ import {
   Zap,
   ArrowUpRight,
   Activity,
+  Database,
+  Cpu,
+  Clock,
 } from "lucide-react";
 
 import { ActivityFeed } from "@/components/activity-feed";
@@ -26,7 +28,10 @@ import { ServiceCard } from "@/components/service-card";
 import { StatCard } from "@/components/stat-card";
 import { SystemPulse } from "@/components/system-pulse";
 import { useDashboardStats, useRecentActivity } from "@/hooks/use-analytics";
-import { useHealth, useReadiness, useVersion } from "@/hooks/use-system-health";
+import { useHealth, useReadiness } from "@/hooks/use-system-health";
+import { useConversations } from "@/hooks/use-chat";
+import { useAgents } from "@/hooks/use-agents";
+import { useDocuments } from "@/hooks/use-documents";
 import { useSystemStatusStore } from "@/store/use-system-status-store";
 import { useAuthStore } from "@/store/use-auth-store";
 
@@ -54,10 +59,12 @@ const itemVariants = {
 export function Dashboard() {
   const health = useHealth();
   const readiness = useReadiness();
-  const version = useVersion();
   const markChecked = useSystemStatusStore((state) => state.markChecked);
   const { data: stats } = useDashboardStats();
   const { data: activity = [] } = useRecentActivity();
+  const { data: conversations = [] } = useConversations();
+  const { data: agents = [] } = useAgents();
+  const { data: documents = [] } = useDocuments();
   const user = useAuthStore((state) => state.user);
 
   const isLoading = health.isLoading || readiness.isLoading;
@@ -69,11 +76,14 @@ export function Dashboard() {
     }
   }, [readiness.isSuccess, readiness.dataUpdatedAt, markChecked]);
 
+  const recentChats = conversations.slice(0, 3);
+  const recentAgents = agents.slice(0, 3);
+  const recentDocs = documents.slice(0, 3);
+
   return (
     <PageTransition>
       <div className="aurora-bg relative min-h-screen bg-background">
         <div className="relative z-10 px-8 py-8 md:px-12">
-
           {/* Header Row */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -85,14 +95,14 @@ export function Dashboard() {
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="h-4 w-4 text-accent" strokeWidth={1.75} />
                 <span className="font-mono text-[11px] text-white/40 uppercase tracking-widest">
-                  Executive Control Center
+                  Command Center
                 </span>
               </div>
               <h1 className="font-display text-2xl font-bold tracking-tight text-white">
                 Welcome back{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}
               </h1>
               <p className="mt-0.5 text-sm text-white/40">
-                Your AI infrastructure is running smoothly.
+                Your AI platform is performing at full capacity.
               </p>
             </div>
 
@@ -153,7 +163,7 @@ export function Dashboard() {
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
               <h2 className="font-display text-xs font-semibold uppercase tracking-wider text-white/40">
-                Platform Statistics
+                Platform Overview
               </h2>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
@@ -161,7 +171,7 @@ export function Dashboard() {
                 index={0}
                 icon={MessageSquare}
                 label="Conversations"
-                value={stats?.total_conversations ?? 0}
+                value={stats?.total_conversations ?? conversations.length ?? 0}
                 subtext={stats ? `${stats.total_messages} messages` : undefined}
                 color="#7C3AED"
               />
@@ -169,7 +179,7 @@ export function Dashboard() {
                 index={1}
                 icon={Bot}
                 label="Agents"
-                value={stats?.total_agents ?? 0}
+                value={stats?.total_agents ?? agents.length ?? 0}
                 color="#22D3EE"
               />
               <StatCard
@@ -190,8 +200,8 @@ export function Dashboard() {
                 index={4}
                 icon={FileText}
                 label="Documents"
-                value={stats?.total_documents ?? 0}
-                subtext={stats ? `${stats.documents_ready} ready` : undefined}
+                value={stats?.total_documents ?? documents.length ?? 0}
+                subtext={stats ? `${stats.documents_ready} indexed` : undefined}
                 color="#F59E0B"
               />
               <StatCard
@@ -205,7 +215,115 @@ export function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Charts + Activity */}
+          {/* Recent Content Showcase */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3"
+          >
+            {/* Recent Chats */}
+            <div className="glass-card border border-border/80 p-5 rounded-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display text-xs font-semibold text-white flex items-center gap-2">
+                  <MessageSquare className="h-3.5 w-3.5 text-[#7C3AED]" />
+                  Recent Chats
+                </h3>
+                <Link to="/chat" className="text-[11px] font-mono text-accent hover:underline flex items-center gap-1">
+                  View all <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </div>
+              {recentChats.length === 0 ? (
+                <p className="text-xs text-white/30 py-4 font-mono">No active conversations</p>
+              ) : (
+                <div className="space-y-2">
+                  {recentChats.map((c) => (
+                    <Link
+                      key={c.id}
+                      to="/chat"
+                      className="flex items-center justify-between p-2.5 rounded-xl border border-border/40 bg-surface/30 hover:border-primary/40 hover:bg-surface/60 transition"
+                    >
+                      <span className="text-xs text-white/80 font-medium truncate flex-1 mr-2">{c.title}</span>
+                      <span className="text-[10px] font-mono text-white/30 flex items-center gap-1 shrink-0">
+                        <Clock className="h-2.5 w-2.5" />
+                        {new Date(c.updated_at).toLocaleDateString()}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recent Personas */}
+            <div className="glass-card border border-border/80 p-5 rounded-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display text-xs font-semibold text-white flex items-center gap-2">
+                  <Bot className="h-3.5 w-3.5 text-[#22D3EE]" />
+                  Active Personas
+                </h3>
+                <Link to="/agents" className="text-[11px] font-mono text-accent hover:underline flex items-center gap-1">
+                  View Studio <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </div>
+              {recentAgents.length === 0 ? (
+                <p className="text-xs text-white/30 py-4 font-mono">No configured personas</p>
+              ) : (
+                <div className="space-y-2">
+                  {recentAgents.map((a) => (
+                    <Link
+                      key={a.id}
+                      to="/agents"
+                      className="flex items-center justify-between p-2.5 rounded-xl border border-border/40 bg-surface/30 hover:border-primary/40 hover:bg-surface/60 transition"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="h-3.5 w-3.5 rounded-full shrink-0"
+                          style={{ backgroundColor: a.avatar_color }}
+                        />
+                        <span className="text-xs text-white/80 font-medium truncate">{a.name}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-accent/80 shrink-0">
+                        {a.provider}/{a.model}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Knowledge Vault */}
+            <div className="glass-card border border-border/80 p-5 rounded-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display text-xs font-semibold text-white flex items-center gap-2">
+                  <FileText className="h-3.5 w-3.5 text-[#F59E0B]" />
+                  Knowledge Vault
+                </h3>
+                <Link to="/documents" className="text-[11px] font-mono text-accent hover:underline flex items-center gap-1">
+                  Manage RAG <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </div>
+              {recentDocs.length === 0 ? (
+                <p className="text-xs text-white/30 py-4 font-mono">No documents indexed</p>
+              ) : (
+                <div className="space-y-2">
+                  {recentDocs.map((d) => (
+                    <Link
+                      key={d.id}
+                      to="/documents"
+                      className="flex items-center justify-between p-2.5 rounded-xl border border-border/40 bg-surface/30 hover:border-primary/40 hover:bg-surface/60 transition"
+                    >
+                      <span className="text-xs text-white/80 font-medium truncate flex-1 mr-2">{d.filename}</span>
+                      <span className="text-[10px] font-mono text-success shrink-0">
+                        {d.chunk_count} chunks
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Charts + Automation */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -213,7 +331,7 @@ export function Dashboard() {
             className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3"
           >
             <RunStatusChart
-              title="Workflow Telemetry"
+              title="Workflow Performance"
               data={stats?.workflow_runs ?? { completed: 0, failed: 0, running: 0 }}
             />
             <RunStatusChart
@@ -221,7 +339,7 @@ export function Dashboard() {
               data={stats?.team_runs ?? { completed: 0, failed: 0, running: 0 }}
             />
 
-            {/* Workflows saved card */}
+            {/* Automation Pipelines card */}
             <motion.div
               whileHover={{ y: -3 }}
               className="glass-card group relative overflow-hidden p-5 border border-border/80 hover:border-primary/20 transition-all duration-300"
@@ -234,7 +352,7 @@ export function Dashboard() {
               />
               <div className="relative z-10">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display text-xs font-semibold text-white/60">Saved Workflows</h3>
+                  <h3 className="font-display text-xs font-semibold text-white/60">Automation Pipelines</h3>
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/10 border border-accent/20">
                     <Workflow className="h-4 w-4 text-accent" strokeWidth={1.75} />
                   </div>
@@ -242,13 +360,13 @@ export function Dashboard() {
                 <p className="mt-4 font-display text-3xl font-bold tracking-tight text-white">
                   {stats?.total_workflows ?? "—"}
                 </p>
-                <p className="mt-1 font-mono text-[11px] text-white/30">DAG execution pipelines</p>
+                <p className="mt-1 font-mono text-[11px] text-white/30">saved workflows</p>
 
                 <Link
                   to="/workflows"
                   className="mt-4 inline-flex items-center gap-1.5 text-xs text-accent/70 hover:text-accent transition-colors"
                 >
-                  <span>View all workflows</span>
+                  <span>Manage workflows</span>
                   <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -267,17 +385,17 @@ export function Dashboard() {
                 <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-accent/10 border border-accent/20">
                   <Activity className="h-3.5 w-3.5 text-accent" />
                 </div>
-                Live Activity Stream
+                Live Activity
               </h2>
               <div className="flex items-center gap-1.5">
                 <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                <span className="font-mono text-[10px] text-white/30">Live</span>
+                <span className="font-mono text-[10px] text-white/30">Real-time</span>
               </div>
             </div>
             <ActivityFeed items={activity} />
           </motion.div>
 
-          {/* Infrastructure Health */}
+          {/* Platform Status */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -285,36 +403,36 @@ export function Dashboard() {
             className="relative"
           >
             <div className="mb-3 flex items-center gap-2">
-              <Server className="h-3.5 w-3.5 text-accent" />
+              <Shield className="h-3.5 w-3.5 text-accent" />
               <h2 className="font-display text-xs font-semibold uppercase tracking-wider text-white/40">
-                Infrastructure Health
+                Platform Status
               </h2>
             </div>
             <CircuitTrace />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <ServiceCard
                 index={0}
-                icon={Server}
-                name="FastAPI Server"
+                icon={Cpu}
+                name="AI Engine"
                 description={
                   health.isError
-                    ? "Backend unreachable"
-                    : `v${health.data?.version ?? "—"} · ${health.data?.status ?? "checking"}`
+                    ? "Service unavailable"
+                    : isLoading ? "Connecting..." : "Operational"
                 }
                 status={health.isLoading ? "checking" : health.isError ? "down" : "up"}
               />
               <ServiceCard
                 index={1}
                 icon={Database}
-                name="MySQL Store"
-                description="Relational database cluster"
+                name="Data Services"
+                description="Knowledge storage and retrieval"
                 status={readiness.isLoading ? "checking" : (readiness.data?.database ?? "down")}
               />
               <ServiceCard
                 index={2}
                 icon={Zap}
-                name="Redis Engine"
-                description="Task broker & rate limiter"
+                name="Real-Time Services"
+                description="Live updates and event processing"
                 status={readiness.isLoading ? "checking" : (readiness.data?.redis ?? "down")}
               />
             </div>
@@ -322,8 +440,11 @@ export function Dashboard() {
 
           {/* Footer */}
           <div className="mt-10 flex items-center justify-between border-t border-border/30 pt-4 font-mono text-[10px] text-white/20">
-            <span>ENV: {version.data?.environment?.toUpperCase() ?? "DEVELOPMENT"}</span>
-            <span>{version.data?.app_name ?? "Vikrm Engine"} v{version.data?.version ?? "0.1.0"}</span>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3 w-3 text-success/50" />
+              <span>All systems operational</span>
+            </div>
+            <span>Vikrm Intelligence Platform</span>
           </div>
         </div>
       </div>

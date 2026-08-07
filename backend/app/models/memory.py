@@ -1,15 +1,9 @@
 """
-Memory entry model.
-
-Canonical metadata lives in MySQL (this table); the embedding vector
-lives in ChromaDB, keyed by this row's `id` (as a string) in the
-`memories` collection. Storing both means the Memory Viewer UI can
-list/filter/paginate via ordinary SQL without touching the vector
-store, while semantic search goes through ChromaDB.
+Memory entry model with pinned and archived support.
 """
 import enum
 
-from sqlalchemy import Enum, ForeignKey, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -34,6 +28,8 @@ class Memory(Base, TimestampMixin):
     memory_type: Mapped[MemoryType] = mapped_column(
         Enum(MemoryType), default=MemoryType.FACT, nullable=False
     )
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     def __repr__(self) -> str:
         return f"<Memory id={self.id} user_id={self.user_id} type={self.memory_type}>"

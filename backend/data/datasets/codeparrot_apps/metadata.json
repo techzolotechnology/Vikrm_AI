@@ -1,0 +1,12 @@
+{
+  "dataset_name": "codeparrot_apps",
+  "hf_path": "codeparrot/apps",
+  "description": "APPS dataset for coding problem solving.",
+  "language": "python",
+  "framework": "algorithms",
+  "document_count": 7,
+  "size_bytes": 4462,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\codeparrot_apps\\index"
+}

@@ -1,17 +1,8 @@
 """
-RAG service.
-
-`process_upload` runs synchronously within the request (parse → chunk →
-embed → store) rather than via a background job queue. For the file
-sizes a chat platform's knowledge base realistically handles this is
-fast enough to not need async job infrastructure yet; Milestone 7's
-workflow engine is where genuine background/long-running execution
-gets built, and large-document processing can move onto that queue
-then without changing this service's public interface.
+RAG service with document rename and chunk preview support.
 """
-from sqlalchemy.ext.asyncio import AsyncSession
-
 import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.vector_store import VectorStore
 from app.models.document import Document
@@ -74,6 +65,14 @@ class RagService:
             await self._session.commit()
             return document
 
+    async def rename_document(self, *, document_id: int, user_id: int, new_filename: str) -> Document:
+        doc = await self._documents.get_by_id(document_id, user_id=user_id)
+        if doc is None:
+            raise RagServiceError("Document not found")
+        renamed = await self._documents.rename(doc, new_filename)
+        await self._session.commit()
+        return renamed
+
     async def search_chunks(
         self, *, user_id: int, query: str, top_k: int = 4
     ) -> list[dict]:
@@ -84,6 +83,15 @@ class RagService:
         query_vector = query_vectors[0]
         matches = self._vector_store.query(
             query_embedding=query_vector, top_k=top_k, where={"user_id": user_id}
+        )
+        return matches
+
+    async def get_document_chunks_preview(self, *, document_id: int, user_id: int) -> list[dict]:
+        doc = await self._documents.get_by_id(document_id, user_id=user_id)
+        if doc is None:
+            return []
+        matches = self._vector_store.query(
+            query_embedding=[0.0] * 384, top_k=20, where={"document_id": document_id, "user_id": user_id}
         )
         return matches
 

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from app.core.config import settings
 from app.repositories.agent_repository import AgentRepository
 from app.services.agent_service import build_system_prompt
-from app.services.llm.base import ChatMessage, ProviderError
+from app.services.llm.base import ChatMessage, ProviderError, ensure_chat_response, normalize_content_chunk
 from app.services.llm.registry import get_provider
 from app.services.tools.base import ToolContext, ToolError
 from app.services.tools.registry import get_tool
@@ -216,7 +216,8 @@ class WorkflowEngine:
             )
             tool = get_tool(tool_name)
             context = ToolContext(user_id=self._user_id, session=self._session)
-            return await tool.run(tool_input, context=context)
+            raw_tool_out = await tool.run(tool_input, context=context)
+            return ensure_chat_response(raw_tool_out)
 
         if node_type in ("output", "end"):
             template = data.get("template", "{{input}}")
@@ -228,8 +229,10 @@ class WorkflowEngine:
     async def _consume_stream(stream) -> str:
         chunks = []
         async for chunk in stream:
-            chunks.append(chunk)
-        return "".join(chunks)
+            norm = normalize_content_chunk(chunk)
+            if norm:
+                chunks.append(norm)
+        return ensure_chat_response("".join(chunks))
 
     @staticmethod
     def _summarize_input(node: dict, initial_input: str, node_outputs: dict[str, str]) -> str:

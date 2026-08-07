@@ -1,0 +1,12 @@
+{
+  "dataset_name": "java_docs",
+  "hf_path": "docs/java",
+  "description": "Java SE standard library reference and concurrency patterns.",
+  "language": "java",
+  "framework": "jdk",
+  "document_count": 7,
+  "size_bytes": 4210,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\java_docs\\index"
+}

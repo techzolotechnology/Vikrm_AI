@@ -1,0 +1,14 @@
+{
+  "key": "inventory",
+  "title": "Inventory Management System",
+  "description": "Stock tracking, SKU management, warehouse allocation, and low-stock alerts.",
+  "category": "domain",
+  "language": "typescript",
+  "framework": "nextjs",
+  "structure": [
+    "app/stock/page.tsx",
+    "app/skus/page.tsx",
+    "package.json",
+    "README.md"
+  ]
+}

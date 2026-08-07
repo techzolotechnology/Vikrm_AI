@@ -1,0 +1,12 @@
+{
+  "dataset_name": "nextjs_docs",
+  "hf_path": "docs/nextjs",
+  "description": "Official Next.js App Router and Server Components guide.",
+  "language": "typescript",
+  "framework": "nextjs",
+  "document_count": 7,
+  "size_bytes": 4294,
+  "status": "seeded_fallback",
+  "version": "1.0.0",
+  "index_path": "data\\datasets\\nextjs_docs\\index"
+}

@@ -39,7 +39,7 @@ export function SystemPulse({ isReady, isLoading }: SystemPulseProps) {
           }`} />
         </div>
         <span className="font-mono text-xs text-white/50">
-          {isLoading ? "Checking..." : isReady ? "System Online" : "Degraded"}
+          {isLoading ? "Connecting..." : isReady ? "Platform Active" : "Degraded Mode"}
         </span>
       </motion.div>
 

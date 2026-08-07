@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
@@ -6,22 +6,23 @@ import {
   Trash2,
   Cpu,
   Zap,
-  ChevronRight,
-  Copy,
-  Download,
-  Upload,
   Play,
-  History,
   X,
   Send,
   Sparkles,
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Download,
+  Search,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { AgentForm } from "@/components/agent-form";
 import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
-import { useAgents, useDeleteAgent, useDuplicateAgent, useCreateAgent } from "@/hooks/use-agents";
-import { apiClient } from "@/lib/api-client";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useAgents, useCreateAgent, useDeleteAgent, useTestAgent } from "@/hooks/use-agents";
 import type { Agent } from "@/types/agent";
 
 const containerVariants = {
@@ -30,15 +31,15 @@ const containerVariants = {
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
+  hidden: { opacity: 0, y: 16, scale: 0.96 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } },
 };
 
 function AgentAvatar({ agent }: { agent: { name: string; avatar_color: string } }) {
   return (
     <div className="relative">
       <div
-        className="flex h-12 w-12 items-center justify-center rounded-2xl text-base font-bold text-white shadow-lg transition-transform group-hover:scale-110"
+        className="flex h-12 w-12 items-center justify-center rounded-2xl text-base font-bold text-white shadow-lg transition-transform group-hover:scale-105"
         style={{
           backgroundColor: agent.avatar_color,
           boxShadow: `0 4px 16px ${agent.avatar_color}50`,
@@ -46,102 +47,124 @@ function AgentAvatar({ agent }: { agent: { name: string; avatar_color: string } 
       >
         {agent.name.charAt(0).toUpperCase()}
       </div>
-      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-success shadow-sm" />
+      <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background bg-success shadow-sm" />
     </div>
   );
 }
 
 export function Agents() {
   const { data: agents = [], isLoading } = useAgents();
-  const deleteAgent = useDeleteAgent();
-  const duplicateAgent = useDuplicateAgent();
   const createAgent = useCreateAgent();
+  const deleteAgent = useDeleteAgent();
+  const testAgent = useTestAgent();
 
   const [showForm, setShowForm] = useState(false);
   const [testingAgent, setTestingAgent] = useState<Agent | null>(null);
   const [testPrompt, setTestPrompt] = useState("");
   const [testResponse, setTestResponse] = useState<string | null>(null);
-  const [isTesting, setIsTesting] = useState(false);
-  const [viewHistoryAgent, setViewHistoryAgent] = useState<Agent | null>(null);
+  const [deletingAgent, setDeletingAgent] = useState<Agent | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [providerFilter, setProviderFilter] = useState<string>("all");
 
-  const handleExport = (agent: Agent) => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(agent, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `agent-${agent.name.toLowerCase().replace(/\s+/g, "-")}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
+  const handleCloneAgent = (agent: Agent) => {
+    createAgent.mutate(
+      {
+        name: `${agent.name} (Copy)`,
+        description: agent.description ?? undefined,
+        avatar_color: agent.avatar_color,
+        instructions: agent.instructions ?? undefined,
+        goal: agent.goal ?? undefined,
+        personality: agent.personality ?? undefined,
+        provider: agent.provider,
+        model: agent.model,
+        temperature: agent.temperature,
+        max_tokens: agent.max_tokens,
+      },
+      {
+        onSuccess: () => showToast(`Cloned "${agent.name}" successfully!`),
+        onError: (err) => showToast(`Failed to clone agent: ${err}`),
+      },
+    );
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const parsed = JSON.parse(event.target?.result as string);
-        if (parsed.name) {
-          createAgent.mutate({
-            name: `${parsed.name} (Imported)`,
-            description: parsed.description,
-            instructions: parsed.instructions,
-            goal: parsed.goal,
-            personality: parsed.personality,
-            provider: parsed.provider || "ollama",
-            model: parsed.model || "llama3.2",
-            temperature: parsed.temperature ?? 0.7,
-            avatar_color: parsed.avatar_color || "#7C3AED",
-          });
-        }
-      } catch (err) {
-        console.error("Failed to import agent:", err);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
+  const handleExportAgent = (agent: Agent) => {
+    const jsonStr = JSON.stringify(agent, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `agent-${agent.name.toLowerCase().replace(/\s+/g, "-")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported "${agent.name}" as JSON.`);
   };
 
-  const handleRunTest = async () => {
+  const handleDeleteConfirm = () => {
+    if (!deletingAgent) return;
+    const targetId = deletingAgent.id;
+    deleteAgent.mutate(targetId, {
+      onSuccess: () => {
+        showToast("Agent deleted successfully.");
+        setDeletingAgent(null);
+      },
+      onError: (err) => {
+        showToast(`Failed to delete agent: ${err}`);
+      },
+    });
+  };
+
+  const handleRunTest = () => {
     if (!testPrompt.trim() || !testingAgent) return;
-    setIsTesting(true);
     setTestResponse(null);
-    try {
-      const { data } = await apiClient.post("/chat/completions", {
-        messages: [
-          { role: "system", content: testingAgent.instructions || "You are a helpful AI agent." },
-          { role: "user", content: testPrompt },
-        ],
-        model: testingAgent.model,
-        temperature: testingAgent.temperature,
-      });
-      setTestResponse(data.choices?.[0]?.message?.content || data.response || "Test complete.");
-    } catch {
-      setTestResponse("Agent test executed successfully. Output generated based on current configuration.");
-    } finally {
-      setIsTesting(false);
-    }
+    testAgent.mutate(
+      { agentId: testingAgent.id, prompt: testPrompt.trim() },
+      {
+        onSuccess: (output) => setTestResponse(output),
+        onError: (err) => setTestResponse(`Execution error: ${err}`),
+      },
+    );
   };
+
+  // Filtered agents
+  const providers = Array.from(new Set(agents.map((a) => a.provider)));
+  const filteredAgents = agents.filter((agent) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (agent.description && agent.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      agent.model.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesProvider = providerFilter === "all" || agent.provider === providerFilter;
+    return matchesSearch && matchesProvider;
+  });
 
   return (
     <PageTransition>
-      <div className="aurora-bg min-h-screen bg-background px-8 py-8 md:px-12">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept=".json"
-          className="hidden"
-        />
+      <div className="aurora-bg min-h-screen bg-background px-6 py-8 md:px-12">
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-6 right-6 z-50 flex items-center gap-2 rounded-2xl border border-success/30 bg-surface/90 px-4 py-3 text-xs font-semibold text-success shadow-2xl backdrop-blur-xl"
+            >
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Page Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="page-icon-wrap">
               <Bot className="h-5 w-5 text-accent" strokeWidth={1.75} />
@@ -156,21 +179,15 @@ export function Agents() {
                 AI Agents Studio
               </h1>
               <p className="text-sm text-white/40">
-                Create, test, duplicate, and manage autonomous AI agent personas.
+                Configure, test, clone, and deploy custom autonomous AI personas.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleImportClick}
-              className="flex items-center gap-1.5 rounded-xl border border-border/80 bg-surface/60 px-3.5 py-2 text-xs font-medium text-white/80 hover:text-white hover:border-white/20 transition-all"
-            >
-              <Upload className="h-3.5 w-3.5 text-accent" />
-              Import
-            </motion.button>
+            <span className="font-mono text-[11px] text-white/30">
+              {agents.length} persona{agents.length !== 1 ? "s" : ""}
+            </span>
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.97 }}
@@ -183,11 +200,52 @@ export function Agents() {
           </div>
         </div>
 
-        {/* Loading Skeletons */}
+        {/* Search & Filter Bar */}
+        {agents.length > 0 && (
+          <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search agents by name, prompt, or model..."
+                className="input pl-10 text-xs w-full"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {providers.length > 1 && (
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-white/30" />
+                <select
+                  value={providerFilter}
+                  onChange={(e) => setProviderFilter(e.target.value)}
+                  className="bg-surface/80 text-xs text-white border border-border/60 rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
+                >
+                  <option value="all">All Providers</option>
+                  {providers.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Loading State */}
         {isLoading && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="glass-card h-48 skeleton" />
+              <div key={i} className="glass-card h-52 skeleton rounded-2xl" />
             ))}
           </div>
         )}
@@ -198,164 +256,171 @@ export function Agents() {
             icon={Bot}
             title="No AI Agents Configured"
             description="Agents let you configure persistent system instructions, goals, and temperature settings for specialized AI personas."
-            actionLabel="Create First Agent"
+            actionLabel="Create Agent"
             onAction={() => setShowForm(true)}
           />
         )}
 
+        {/* Search Empty State */}
+        {!isLoading && agents.length > 0 && filteredAgents.length === 0 && (
+          <div className="glass-card border border-border/60 p-12 text-center my-8">
+            <Search className="mx-auto h-8 w-8 text-white/20 mb-3" />
+            <p className="text-sm font-semibold text-white">No agents match "{searchQuery}"</p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setProviderFilter("all");
+              }}
+              className="mt-3 text-xs text-accent underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
         {/* Agent Cards Grid */}
-        {!isLoading && agents.length > 0 && (
+        {!isLoading && filteredAgents.length > 0 && (
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {agents.map((agent) => (
+            {filteredAgents.map((agent) => (
               <motion.div
                 key={agent.id}
                 variants={cardVariants}
-                whileHover={{ y: -5 }}
-                className="glass-card group relative overflow-hidden flex flex-col border border-border/70 hover:border-primary/30 transition-all duration-300 cursor-default"
+                whileHover={{ y: -4 }}
+                className="glass-card group relative overflow-hidden flex flex-col border border-border/70 hover:border-primary/40 transition-all duration-300 rounded-2xl shadow-md"
               >
-                {/* Top gradient shimmer */}
+                {/* Top border glow */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute top-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{
-                    background: `linear-gradient(90deg, transparent, ${agent.avatar_color}80, transparent)`,
+                    background: `linear-gradient(90deg, transparent, ${agent.avatar_color}, transparent)`,
                   }}
                 />
 
-                <div className="relative z-10 p-5">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
+                <div className="relative z-10 p-5 flex-1 flex flex-col">
+                  {/* Card Header: Avatar & Info */}
+                  <div className="flex items-start gap-3.5 mb-3">
                     <AgentAvatar agent={agent} />
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setTestingAgent(agent)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-surface/60 text-white/40 hover:text-success hover:border-success/30 transition-all"
-                        title="Test/Preview Agent"
-                      >
-                        <Play className="h-3.5 w-3.5 fill-current" />
-                      </button>
-                      <button
-                        onClick={() => duplicateAgent.mutate(agent.id)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-surface/60 text-white/40 hover:text-accent hover:border-accent/30 transition-all"
-                        title="Duplicate Agent"
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleExport(agent)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-surface/60 text-white/40 hover:text-primary hover:border-primary/30 transition-all"
-                        title="Export JSON"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setViewHistoryAgent(agent)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-surface/60 text-white/40 hover:text-warning hover:border-warning/30 transition-all"
-                        title="Version History"
-                      >
-                        <History className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => deleteAgent.mutate(agent.id)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-surface/60 text-white/40 hover:text-danger hover:border-danger/30 transition-all"
-                        title="Delete Agent"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display text-base font-bold text-white truncate">
+                        {agent.name}
+                      </h3>
+                      {agent.description ? (
+                        <p className="mt-0.5 text-xs text-white/50 line-clamp-2 leading-relaxed">
+                          {agent.description}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-xs italic text-white/25">No description provided</p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Name & Description */}
-                  <h3 className="font-display text-base font-bold text-white group-hover:text-white transition-colors">
-                    {agent.name}
-                  </h3>
-                  {agent.description ? (
-                    <p className="mt-1 text-xs text-white/50 line-clamp-2 leading-relaxed">
-                      {agent.description}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs italic text-white/25">No description provided</p>
+                  {/* Instructions Snippet if available */}
+                  {agent.instructions && (
+                    <div className="mb-3 rounded-xl border border-white/5 bg-background/40 p-2.5 text-[11px] text-white/60 font-mono line-clamp-2">
+                      <span className="text-accent/70 font-semibold block mb-0.5">Prompt:</span>
+                      {agent.instructions}
+                    </div>
                   )}
-                </div>
 
-                {/* Footer */}
-                <div className="relative z-10 mt-auto border-t border-border/40 px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Cpu className="h-3 w-3 text-accent/60" strokeWidth={1.75} />
-                    <span className="font-mono text-[10px] text-accent/80">
-                      {agent.provider}/{agent.model}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 rounded-md bg-white/5 px-2 py-0.5">
-                      <Zap className="h-2.5 w-2.5 text-warning/60" />
-                      <span className="font-mono text-[10px] text-white/40">
-                        {agent.temperature.toFixed(1)}
+                  {/* Metadata Row */}
+                  <div className="mt-auto pt-3 border-t border-border/40 flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-1.5 font-mono text-accent/90">
+                      <Cpu className="h-3.5 w-3.5 text-accent/60" strokeWidth={1.75} />
+                      <span>
+                        {agent.provider}/{agent.model}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5">
-                      <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                      <span className="font-mono text-[10px] text-success/80">Active</span>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 rounded-md bg-white/5 px-2 py-0.5 font-mono text-white/40">
+                        <Zap className="h-3 w-3 text-warning/60" />
+                        <span>{agent.temperature.toFixed(1)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 font-mono text-success">
+                        <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                        <span>Active</span>
+                      </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Card Action Bar: Run, Clone, Export, Delete */}
+                <div className="relative z-10 border-t border-border/50 bg-surface/40 px-4 py-2.5 flex items-center justify-between gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setTestingAgent(agent);
+                      setTestPrompt("");
+                      setTestResponse(null);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-brand px-3 py-2 text-xs font-bold text-white shadow-glow-sm transition-all"
+                  >
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    Run Agent
+                  </motion.button>
+
+                  <Tooltip content="Clone Agent" side="top">
+                    <button
+                      onClick={() => handleCloneAgent(agent)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/60 bg-surface/60 text-white/40 hover:text-accent hover:border-accent/40 transition-all shrink-0"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip content="Export JSON" side="top">
+                    <button
+                      onClick={() => handleExportAgent(agent)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/60 bg-surface/60 text-white/40 hover:text-white transition-all shrink-0"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip content="Delete agent" side="top">
+                    <button
+                      onClick={() => setDeletingAgent(agent)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/60 bg-surface/60 text-white/40 hover:text-danger hover:border-danger/40 hover:bg-danger/10 transition-all shrink-0"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </Tooltip>
                 </div>
               </motion.div>
             ))}
-
-            {/* Add New Card */}
-            <motion.div
-              variants={cardVariants}
-              whileHover={{ y: -5, scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowForm(true)}
-              className="glass-card group flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-border/40 hover:border-primary/30 p-8 transition-all duration-300 min-h-[180px]"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <Plus className="h-6 w-6 text-primary/60 group-hover:text-primary transition-colors" strokeWidth={1.5} />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-white/50 group-hover:text-white/80 transition-colors">
-                  Create New Agent
-                </p>
-                <p className="mt-0.5 text-xs text-white/25">Add a custom AI persona</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-primary/50 transition-colors" />
-            </motion.div>
           </motion.div>
         )}
 
-        {/* Test Modal */}
+        {/* Run/Test Modal */}
         <AnimatePresence>
           {testingAgent && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"
-              onClick={() => setTestingAgent(null)}
-            >
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="glass-card w-full max-w-xl p-6 border border-border/80 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
+                className="glass-card w-full max-w-xl p-6 border border-border/80 shadow-2xl rounded-2xl"
               >
                 <div className="flex items-center justify-between pb-4 border-b border-border/50">
                   <div className="flex items-center gap-3">
                     <div
-                      className="flex h-8 w-8 items-center justify-center rounded-xl font-bold text-white text-xs"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl font-bold text-white text-sm"
                       style={{ backgroundColor: testingAgent.avatar_color }}
                     >
                       {testingAgent.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">Test Persona: {testingAgent.name}</h3>
-                      <p className="text-[11px] text-white/40">{testingAgent.model} • Temp {testingAgent.temperature}</p>
+                      <h3 className="text-sm font-bold text-white">Run Persona: {testingAgent.name}</h3>
+                      <p className="text-[11px] text-white/40 font-mono">
+                        {testingAgent.provider}/{testingAgent.model} · Temp {testingAgent.temperature}
+                      </p>
                     </div>
                   </div>
                   <button onClick={() => setTestingAgent(null)} className="text-white/40 hover:text-white">
@@ -363,86 +428,100 @@ export function Agents() {
                   </button>
                 </div>
 
-                <div className="my-4 space-y-3">
+                <div className="my-4 space-y-4">
+                  {testingAgent.instructions && (
+                    <div className="rounded-xl border border-border/60 bg-background/50 p-3 text-xs text-white/60">
+                      <span className="font-mono text-[10px] uppercase text-accent font-semibold block mb-1">
+                        System Instructions:
+                      </span>
+                      {testingAgent.instructions}
+                    </div>
+                  )}
+
                   <div>
-                    <label className="text-xs text-white/40 mb-1 block">Test Prompt</label>
+                    <label className="text-xs text-white/40 mb-1.5 block font-medium">Test Prompt</label>
                     <div className="flex gap-2">
                       <input
                         value={testPrompt}
                         onChange={(e) => setTestPrompt(e.target.value)}
-                        placeholder="Type a test input to run against this agent..."
-                        className="input flex-1 text-sm"
+                        placeholder="Type prompt to execute against this agent..."
+                        className="input flex-1 text-xs"
                         onKeyDown={(e) => e.key === "Enter" && handleRunTest()}
+                        autoFocus
                       />
                       <button
                         onClick={handleRunTest}
-                        disabled={isTesting}
+                        disabled={testAgent.isPending || !testPrompt.trim()}
                         className="btn-primary text-xs px-4"
                       >
-                        {isTesting ? <Sparkles className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                        {testAgent.isPending ? (
+                          <Sparkles className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Send className="h-3.5 w-3.5" />
+                        )}
                       </button>
                     </div>
                   </div>
 
                   {testResponse && (
-                    <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-white/90">
-                      <div className="font-mono text-[10px] text-primary/70 mb-1 uppercase tracking-wider">Agent Response Output:</div>
-                      {testResponse}
+                    <div className="rounded-xl border border-primary/30 bg-primary/10 p-4 text-xs leading-relaxed text-white/90 max-h-64 overflow-y-auto font-mono">
+                      <div className="font-mono text-[10px] text-accent mb-1.5 uppercase tracking-wider font-semibold">
+                        Agent Output:
+                      </div>
+                      <div className="whitespace-pre-wrap">{testResponse}</div>
                     </div>
                   )}
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
-        {/* Version History Modal */}
+        {/* Delete Confirmation Modal */}
         <AnimatePresence>
-          {viewHistoryAgent && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"
-              onClick={() => setViewHistoryAgent(null)}
-            >
+          {deletingAgent && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="glass-card w-full max-w-md p-6 border border-border/80 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
+                className="glass-card w-full max-w-sm p-6 border border-border/80 shadow-2xl rounded-2xl"
               >
-                <div className="flex items-center justify-between pb-4 border-b border-border/50">
-                  <div className="flex items-center gap-2">
-                    <History className="h-4 w-4 text-warning" />
-                    <h3 className="text-sm font-bold text-white">Version History: {viewHistoryAgent.name}</h3>
+                <div className="flex items-center gap-3 text-danger mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 border border-danger/30">
+                    <AlertTriangle className="h-5 w-5" />
                   </div>
-                  <button onClick={() => setViewHistoryAgent(null)} className="text-white/40 hover:text-white">
-                    <X className="h-4 w-4" />
+                  <div>
+                    <h3 className="font-display text-base font-bold text-white">Delete Agent?</h3>
+                    <p className="text-xs text-white/40">This action cannot be undone.</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-white/70 mb-6 leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-white">{deletingAgent.name}</span>?
+                </p>
+
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setDeletingAgent(null)}
+                    className="rounded-xl px-4 py-2 text-xs text-white/60 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    disabled={deleteAgent.isPending}
+                    className="rounded-xl bg-danger px-4 py-2 text-xs font-bold text-white shadow-glow-sm hover:bg-danger/90 transition-all disabled:opacity-50"
+                  >
+                    {deleteAgent.isPending ? "Deleting..." : "Delete"}
                   </button>
                 </div>
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between rounded-xl border border-success/20 bg-success/5 p-3 text-xs">
-                    <div>
-                      <div className="font-semibold text-white">v1.2 (Current Active)</div>
-                      <div className="text-[10px] text-white/40">Updated prompt instructions & temperature</div>
-                    </div>
-                    <span className="font-mono text-[10px] text-success">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-xl border border-border/40 bg-surface/40 p-3 text-xs opacity-60">
-                    <div>
-                      <div className="font-semibold text-white">v1.1</div>
-                      <div className="text-[10px] text-white/40">Initial model selection ({viewHistoryAgent.model})</div>
-                    </div>
-                    <span className="font-mono text-[10px] text-white/30">Archived</span>
-                  </div>
-                </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
+        {/* Create Agent Modal */}
         {showForm && <AgentForm onClose={() => setShowForm(false)} />}
       </div>
     </PageTransition>

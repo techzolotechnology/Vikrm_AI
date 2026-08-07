@@ -1,0 +1,13 @@
+{
+  "key": "express",
+  "title": "Node.js Express REST & API Gateway",
+  "description": "Express.js API boilerplate with middleware and route modules.",
+  "category": "backend",
+  "language": "javascript",
+  "framework": "express",
+  "structure": [
+    "server.js",
+    "package.json",
+    "README.md"
+  ]
+}

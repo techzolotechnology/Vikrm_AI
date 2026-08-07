@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
   FileText,
@@ -10,10 +11,13 @@ import {
   Wrench,
   Activity,
   TrendingUp,
+  Terminal,
+  Cpu,
+  X,
 } from "lucide-react";
 
 import { PageTransition } from "@/components/page-transition";
-import { useAdminUsers, useSystemStats, useUpdateUser } from "@/hooks/use-admin";
+import { useAdminUsers, useModelConfigs, useSystemLogs, useSystemStats, useUpdateUser } from "@/hooks/use-admin";
 import { useAuthStore } from "@/store/use-auth-store";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +25,12 @@ export function Admin() {
   const currentUser = useAuthStore((state) => state.user);
   const { data: stats } = useSystemStats();
   const { data: users = [], isLoading } = useAdminUsers();
+  const { data: logs = [] } = useSystemLogs();
+  const { data: models = [] } = useModelConfigs();
   const updateUser = useUpdateUser();
+
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [showModelsModal, setShowModelsModal] = useState(false);
 
   const statCards = stats
     ? [
@@ -48,15 +57,37 @@ export function Admin() {
             </div>
             <div>
               <span className="font-mono text-[10px] uppercase tracking-widest text-white/30">
-                Administrator
+                Administration
               </span>
               <h1 className="font-display text-2xl font-bold tracking-tight text-white">
-                System Control
+                Administration Center
               </h1>
               <p className="text-sm text-white/40">
-                User management, role access, and platform telemetry.
+                User management, access control, system logs, and model configurations.
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowModelsModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-border/80 bg-surface/60 px-3.5 py-2 text-xs font-medium text-white/80 hover:text-white hover:border-white/20 transition-all"
+            >
+              <Cpu className="h-3.5 w-3.5 text-accent" />
+              Model Configs ({models.length})
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowLogsModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-border/80 bg-surface/60 px-3.5 py-2 text-xs font-medium text-white/80 hover:text-white hover:border-white/20 transition-all"
+            >
+              <Terminal className="h-3.5 w-3.5 text-warning" />
+              System Logs ({logs.length})
+            </motion.button>
           </div>
         </div>
 
@@ -66,7 +97,7 @@ export function Admin() {
             <div className="mb-3 flex items-center gap-2">
               <TrendingUp className="h-3.5 w-3.5 text-white/30" />
               <span className="font-mono text-[10px] uppercase tracking-wider text-white/30">
-                Platform Telemetry
+                Platform Overview
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
@@ -231,6 +262,92 @@ export function Admin() {
             );
           })}
         </div>
+
+        {/* System Logs Modal */}
+        <AnimatePresence>
+          {showLogsModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"
+              onClick={() => setShowLogsModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="glass-card w-full max-w-2xl p-6 border border-border/80 shadow-2xl max-h-[80vh] flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="h-4 w-4 text-warning" />
+                    <h3 className="text-sm font-bold text-white">System Runtime Logs</h3>
+                  </div>
+                  <button onClick={() => setShowLogsModal(false)} className="text-white/40 hover:text-white">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-4 flex-1 overflow-y-auto space-y-2 font-mono text-xs no-scrollbar">
+                  {logs.map((log, i) => (
+                    <div key={i} className="rounded-lg bg-surface/60 border border-border/40 p-3">
+                      <div className="flex items-center justify-between text-[10px] text-white/40 mb-1">
+                        <span className="text-warning">{log.level}</span>
+                        <span>{log.source} · {log.timestamp}</span>
+                      </div>
+                      <p className="text-white/90">{log.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Model Configs Modal */}
+        <AnimatePresence>
+          {showModelsModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-md"
+              onClick={() => setShowModelsModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="glass-card w-full max-w-xl p-6 border border-border/80 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-accent" />
+                    <h3 className="text-sm font-bold text-white">Configured AI Providers & Models</h3>
+                  </div>
+                  <button onClick={() => setShowModelsModal(false)} className="text-white/40 hover:text-white">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {models.map((mod, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-xl border border-border/60 bg-surface/40 p-3 text-xs">
+                      <div>
+                        <div className="font-bold text-white">{mod.provider}/{mod.model}</div>
+                        <div className="font-mono text-[10px] text-white/40">Latency: ~{mod.latency_ms}ms</div>
+                      </div>
+                      <span className="font-mono text-[10px] text-success border border-success/30 bg-success/10 rounded-full px-2 py-0.5 uppercase">
+                        {mod.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </PageTransition>
   );
