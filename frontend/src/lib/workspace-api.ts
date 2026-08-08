@@ -100,9 +100,12 @@ export const workspaceApi = {
     return res.data;
   },
 
-  getModels: async () => {
+  getModels: async (): Promise<{ providers: Record<string, string[]>; ollama_online: boolean }> => {
     const res = await apiClient.get("/providers/models");
-    return res.data.providers;
+    return {
+      providers: res.data.providers || { ollama: ["qwen3:8b"] },
+      ollama_online: res.data.ollama_online ?? true,
+    };
   },
 
   searchHfModels: async (q: string) => {
