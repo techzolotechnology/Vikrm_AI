@@ -54,6 +54,11 @@ class ScoreEvaluator:
         Calculates production readiness quality scores.
         Uses real SandboxExecutionResult if provided, setting is_estimated=False.
         """
+        if isinstance(build_result, bool):
+            if build_success is None:
+                build_success = build_result
+            build_result = None
+
         if build_result is not None:
             is_estimated = False
             eval_status = f"real sandbox execution (duration: {build_result.duration_seconds:.2f}s)"

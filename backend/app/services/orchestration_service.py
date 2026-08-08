@@ -202,21 +202,22 @@ class OrchestrationService:
         messages = []
         system_prompt = build_system_prompt(agent)
 
-        # Inject RAG context into agent prompt
-        try:
-            from app.services.rag.retriever import KnowledgeRetriever
-            from app.services.rag.context_builder import RAGContextBuilder
-            retriever = KnowledgeRetriever()
-            res = retriever.retrieve_context(prompt, top_k=5)
-            context_builder = RAGContextBuilder()
-            augmented_prompt = context_builder.build_augmented_prompt(prompt, res)
-            if augmented_prompt != prompt:
-                if system_prompt:
-                    system_prompt = f"{system_prompt}\n\n{augmented_prompt}"
-                else:
-                    system_prompt = augmented_prompt
-        except Exception:
-            pass
+        # Inject RAG context into agent prompt (unless fake provider used for tests)
+        if agent.provider != "fake":
+            try:
+                from app.services.rag.retriever import KnowledgeRetriever
+                from app.services.rag.context_builder import RAGContextBuilder
+                retriever = KnowledgeRetriever()
+                res = retriever.retrieve_context(prompt, top_k=5)
+                context_builder = RAGContextBuilder()
+                augmented_prompt = context_builder.build_augmented_prompt(prompt, res)
+                if augmented_prompt != prompt:
+                    if system_prompt:
+                        system_prompt = f"{system_prompt}\n\n{augmented_prompt}"
+                    else:
+                        system_prompt = augmented_prompt
+            except Exception:
+                pass
 
         if system_prompt:
             messages.append(ChatMessage(role="system", content=system_prompt))

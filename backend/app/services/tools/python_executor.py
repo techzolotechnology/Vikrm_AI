@@ -57,6 +57,7 @@ class PythonExecutorTool(Tool):
                     sys.executable,
                     "-I",  # isolated mode: ignore PYTHONPATH, user site-packages, PYTHON* env vars
                     str(script_path),
+                    stdin=asyncio.subprocess.DEVNULL,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
                     cwd=tmpdir,

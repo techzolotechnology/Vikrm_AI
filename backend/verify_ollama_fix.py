@@ -2,10 +2,11 @@
 Verification script for Vikrm Ollama integration and backend AI response flow.
 Runs inside backend container: python /app/verify_ollama_fix.py
 """
+import os
 import asyncio
 import sys
 
-sys.path.insert(0, "/app")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app.core.config import settings
 from app.services.llm.base import ChatMessage

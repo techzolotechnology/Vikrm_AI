@@ -51,6 +51,18 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+class ProductionValidator:
+    @staticmethod
+    def validate(files: Dict[str, str]) -> Tuple[bool, List[str]]:
+        results = ValidationService.validate_file_map(files)
+        all_issues = []
+        for path, res in results.items():
+            for issue in res.issues:
+                all_issues.append(f"{path}: {issue}")
+        passed = len(all_issues) == 0
+        return passed, all_issues
+
+
 @dataclass
 class ProjectMetrics:
     complexity: str = "Enterprise"
