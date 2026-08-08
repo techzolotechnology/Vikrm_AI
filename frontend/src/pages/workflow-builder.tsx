@@ -56,7 +56,7 @@ const STARTER_TEMPLATES = [
     color: "#7C3AED",
     nodes: [
       { id: "start", type: "start", position: { x: 100, y: 220 }, data: {} },
-      { id: "llm_1", type: "llm", position: { x: 380, y: 220 }, data: { prompt: "Respond helpfully to: {{input}}", provider: "ollama", model: "llama3.2", temperature: 0.7 } },
+      { id: "llm_1", type: "llm", position: { x: 380, y: 220 }, data: { prompt: "Respond helpfully to: {{input}}", provider: "ollama", model: "qwen3:8b", temperature: 0.7 } },
       { id: "output_1", type: "output", position: { x: 660, y: 220 }, data: { template: "{{llm_1.output}}" } },
     ],
     edges: [
@@ -87,7 +87,7 @@ const STARTER_TEMPLATES = [
     nodes: [
       { id: "start", type: "start", position: { x: 80, y: 220 }, data: {} },
       { id: "tool_1", type: "tool", position: { x: 320, y: 220 }, data: { tool_name: "calculator", input: "{{input}}" } },
-      { id: "llm_1", type: "llm", position: { x: 560, y: 220 }, data: { prompt: "Explain this result: {{tool_1.output}}", provider: "ollama", model: "llama3.2" } },
+      { id: "llm_1", type: "llm", position: { x: 560, y: 220 }, data: { prompt: "Explain this result: {{tool_1.output}}", provider: "ollama", model: "qwen3:8b" } },
       { id: "output_1", type: "output", position: { x: 800, y: 220 }, data: { template: "{{llm_1.output}}" } },
     ],
     edges: [
@@ -100,7 +100,7 @@ const STARTER_TEMPLATES = [
 
 const DEFAULT_DATA: Record<WorkflowNodeType, WorkflowNodeData> = {
   start: {},
-  llm: { prompt: "{{input}}", provider: "ollama", model: "llama3.2", temperature: 0.7 },
+  llm: { prompt: "{{input}}", provider: "ollama", model: "qwen3:8b", temperature: 0.7 },
   agent: { prompt: "{{input}}" },
   condition: { left: "{{input}}", operator: "contains", right: "" },
   tool: { tool_name: "calculator", input: "{{input}}" },

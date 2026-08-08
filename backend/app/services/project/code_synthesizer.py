@@ -1591,7 +1591,7 @@ class LLMCodeSynthesizer:
         batch_name: str,
         plan: AgentPlan,
         existing_files: Dict[str, str],
-        model: str = "llama3.2:latest",
+        model: str = "qwen3:8b",
         provider_name: str = "ollama"
     ) -> Dict[str, Any]:
         """

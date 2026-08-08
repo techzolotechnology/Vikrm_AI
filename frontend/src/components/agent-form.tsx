@@ -13,7 +13,7 @@ export function AgentForm({ onClose }: { onClose: () => void }) {
   const [instructions, setInstructions] = useState("");
   const [goal, setGoal] = useState("");
   const [personality, setPersonality] = useState("");
-  const [model, setModel] = useState("llama3.2");
+  const [model, setModel] = useState("qwen3:8b");
   const [temperature, setTemperature] = useState(0.7);
   const [color, setColor] = useState(COLOR_OPTIONS[0]);
 
@@ -133,7 +133,7 @@ export function AgentForm({ onClose }: { onClose: () => void }) {
                 <input
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  placeholder="llama3.2"
+                  placeholder="qwen3:8b"
                   className="input text-sm font-mono"
                 />
               </Field>

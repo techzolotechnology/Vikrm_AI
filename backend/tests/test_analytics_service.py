@@ -26,8 +26,8 @@ async def test_dashboard_stats_reflect_real_seeded_data(db_session: AsyncSession
 
     # Seed two conversations via the real ChatService (not direct SQL inserts).
     chat_service = ChatService(db_session)
-    await chat_service.create_conversation(user_id=user.id, title="Chat 1", provider="ollama", model="llama3.2")
-    await chat_service.create_conversation(user_id=user.id, title="Chat 2", provider="ollama", model="llama3.2")
+    await chat_service.create_conversation(user_id=user.id, title="Chat 1", provider="ollama", model="qwen3:8b")
+    await chat_service.create_conversation(user_id=user.id, title="Chat 2", provider="ollama", model="qwen3:8b")
 
     # Seed agents.
     agents = AgentRepository(db_session)
@@ -132,9 +132,9 @@ async def test_recent_activity_sorted_most_recent_first(db_session: AsyncSession
     await db_session.commit()
 
     chat_service = ChatService(db_session)
-    await chat_service.create_conversation(user_id=user.id, title="Older Chat", provider="ollama", model="llama3.2")
+    await chat_service.create_conversation(user_id=user.id, title="Older Chat", provider="ollama", model="qwen3:8b")
     await asyncio.sleep(0.01)
-    await chat_service.create_conversation(user_id=user.id, title="Newer Chat", provider="ollama", model="llama3.2")
+    await chat_service.create_conversation(user_id=user.id, title="Newer Chat", provider="ollama", model="qwen3:8b")
 
     analytics = AnalyticsService(db_session)
     activity = await analytics.get_recent_activity(user_id=user.id)

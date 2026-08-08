@@ -266,7 +266,7 @@ async def phase10_chat(token, headers):
         # Create conversation
         try:
             r = await client.post(f"{API_BASE}/conversations",
-                                  json={"title": "Startup Test", "provider": "ollama", "model": "llama3.2"},
+                                  json={"title": "Startup Test", "provider": "ollama", "model": "qwen3:8b"},
                                   headers=headers)
             if r.status_code not in (200, 201):
                 fail(10, "Create conversation", f"HTTP {r.status_code}")
@@ -369,7 +369,7 @@ async def phase13_projects(token, headers):
         # Create a conversation and ask for code generation
         try:
             r = await client.post(f"{API_BASE}/conversations",
-                                  json={"title": "Project Gen Test", "provider": "ollama", "model": "llama3.2"},
+                                  json={"title": "Project Gen Test", "provider": "ollama", "model": "qwen3:8b"},
                                   headers=headers)
             conv = r.json()
             conv_id = conv["id"]
@@ -523,7 +523,7 @@ def final_report():
         ("✅", "Vite Frontend",     "http://localhost:5173",       "Running"),
         ("✅", "Swagger API Docs",  "http://localhost:8000/docs",  "Running"),
         ("✅", "Redis",             "localhost:6379",               "Running (PONG)"),
-        ("✅", "Ollama",            "http://127.0.0.1:11434",      "Running (llama3.2)"),
+        ("✅", "Ollama",            "http://127.0.0.1:11434",      "Running (qwen3:8b)"),
         ("✅", "SQLite Database",   "backend/data/vikrm.db",       "Connected, clean"),
     ]
     for icon, name, url, status in services:
@@ -533,7 +533,7 @@ def final_report():
     print(" PROVIDER STATUS")
     print(SEP)
     providers = [
-        ("✅", "Ollama",     "llama3.2",                  "Active — local"),
+        ("✅", "Ollama",     "qwen3:8b",                  "Active — local"),
         ("⏭ ", "OpenAI",    "gpt-4o",                    "SKIP — no OPENAI_API_KEY"),
         ("⏭ ", "Anthropic", "claude-3-5-sonnet",         "SKIP — no ANTHROPIC_API_KEY"),
         ("⏭ ", "Gemini",    "gemini-2.0-flash",          "SKIP — no GEMINI_API_KEY"),

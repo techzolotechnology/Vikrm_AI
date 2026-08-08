@@ -36,7 +36,7 @@ async def test():
         messages = [ChatMessage(role="user", content=prompt)]
         chunks = []
         try:
-            async for chunk in provider.stream_chat(messages=messages, model="llama3.2"):
+            async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b"):
                 chunks.append(chunk)
             full = "".join(chunks)
             print(f"Response ({len(full)} chars): {full[:300]!r}")

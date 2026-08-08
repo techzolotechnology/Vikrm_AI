@@ -28,7 +28,7 @@ class Conversation(Base, TimestampMixin):
     )
     title: Mapped[str] = mapped_column(String(255), default="New Conversation", nullable=False)
     provider: Mapped[str] = mapped_column(String(50), default="ollama", nullable=False)
-    model: Mapped[str] = mapped_column(String(100), default="llama3.2", nullable=False)
+    model: Mapped[str] = mapped_column(String(100), default="qwen3:8b", nullable=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)

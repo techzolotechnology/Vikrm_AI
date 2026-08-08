@@ -32,7 +32,7 @@ class Agent(Base, TimestampMixin):
 
     # Model settings
     provider: Mapped[str] = mapped_column(String(50), default="ollama", nullable=False)
-    model: Mapped[str] = mapped_column(String(100), default="llama3.2", nullable=False)
+    model: Mapped[str] = mapped_column(String(100), default="qwen3:8b", nullable=False)
     temperature: Mapped[float] = mapped_column(Float, default=0.7, nullable=False)
     max_tokens: Mapped[int] = mapped_column(Integer, default=2048, nullable=False)
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

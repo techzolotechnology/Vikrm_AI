@@ -30,7 +30,7 @@ async def test_stream_reply_persists_and_streams(
 
     service = ChatService(db_session)
     conversation = await service.create_conversation(
-        user_id=user.id, title=None, provider="ollama", model="llama3.2"
+        user_id=user.id, title=None, provider="ollama", model="qwen3:8b"
     )
 
     collected = ""
@@ -69,7 +69,7 @@ async def test_stream_reply_second_turn_has_correct_history_no_duplication(
 
     service = ChatService(db_session)
     conversation = await service.create_conversation(
-        user_id=user.id, title=None, provider="ollama", model="llama3.2"
+        user_id=user.id, title=None, provider="ollama", model="qwen3:8b"
     )
 
     async for _ in service.stream_reply(conversation=conversation, user_content="first message"):

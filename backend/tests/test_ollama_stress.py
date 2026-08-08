@@ -77,14 +77,14 @@ async def test_ollama_provider_concurrency_stress():
     mock_client = AsyncMock()
     mock_client.is_closed = False
     mock_client.stream = MagicMock(return_value=MockStreamResponse())
-    mock_client.get = AsyncMock(return_value=httpx.Response(200, json={"models": [{"name": "llama3.2"}]}))
+    mock_client.get = AsyncMock(return_value=httpx.Response(200, json={"models": [{"name": "qwen3:8b"}]}))
 
     with patch.object(ollama_client_manager, "get_client", return_value=mock_client), \
          patch.object(ollama_client_manager, "ping_health", return_value="http://127.0.0.1:11434"):
         
         async def single_request(idx: int):
             tokens = []
-            async for chunk in provider.stream_chat(messages=messages, model="llama3.2"):
+            async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b"):
                 tokens.append(chunk)
             return "".join(tokens)
 
@@ -138,7 +138,7 @@ async def test_ollama_provider_auto_recovery_on_network_error():
          patch("asyncio.sleep", new_callable=AsyncMock):  # Speed up delay in test
 
         tokens = []
-        async for chunk in provider.stream_chat(messages=messages, model="llama3.2"):
+        async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b"):
             tokens.append(chunk)
 
         assert attempts == 2
@@ -171,6 +171,6 @@ async def test_500_consecutive_requests():
          patch.object(ollama_client_manager, "ping_health", return_value="http://127.0.0.1:11434"):
         for i in range(500):
             tokens = []
-            async for chunk in provider.stream_chat(messages=messages, model="llama3.2"):
+            async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b"):
                 tokens.append(chunk)
             assert "".join(tokens) == "ok"

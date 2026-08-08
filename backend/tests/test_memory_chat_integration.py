@@ -45,7 +45,7 @@ async def test_relevant_memory_is_injected_into_chat_stream(
 
     chat_service = ChatService(db_session)
     conversation = await chat_service.create_conversation(
-        user_id=user.id, title=None, provider="ollama", model="llama3.2"
+        user_id=user.id, title=None, provider="ollama", model="qwen3:8b"
     )
 
     async for _ in chat_service.stream_reply(
@@ -84,7 +84,7 @@ async def test_no_memories_means_no_extra_system_message(
 
     chat_service = ChatService(db_session)
     conversation = await chat_service.create_conversation(
-        user_id=user.id, title=None, provider="ollama", model="llama3.2"
+        user_id=user.id, title=None, provider="ollama", model="qwen3:8b"
     )
 
     async for _ in chat_service.stream_reply(conversation=conversation, user_content="hello"):

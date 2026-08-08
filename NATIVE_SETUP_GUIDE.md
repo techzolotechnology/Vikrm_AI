@@ -59,7 +59,7 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 # Local LLM Integration
 OLLAMA_BASE_URL=http://localhost:11434
 DEFAULT_LLM_PROVIDER=ollama
-DEFAULT_LLM_MODEL=llama3.2
+DEFAULT_LLM_MODEL=qwen3:8b
 
 # Vector Store / RAG Embeddings
 CHROMA_PERSIST_DIR=./data/chroma
@@ -104,8 +104,8 @@ python -c "import redis; print(redis.Redis(host='localhost', port=6379).ping())"
 # Start Ollama server (or run Ollama Windows tray app):
 ollama serve
 
-# Pull default Llama model:
-ollama pull llama3.2
+# Pull default Qwen model:
+ollama pull qwen3:8b
 ```
 
 ---

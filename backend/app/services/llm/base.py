@@ -9,6 +9,7 @@ provider-agnostic — it never imports a provider-specific SDK directly.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import json
+import re
 from typing import AsyncIterator, List, Dict, Any, Optional
 
 
@@ -88,6 +89,11 @@ def normalize_content_chunk(chunk: Any) -> str:
             pass
 
     if isinstance(chunk, str):
+        if "<think>" in chunk:
+            chunk = re.sub(r"<think>.*?</think>", "", chunk, flags=re.DOTALL)
+            if "<think>" in chunk and "</think>" not in chunk:
+                chunk = re.sub(r"<think>.*$", "", chunk, flags=re.DOTALL)
+            chunk = chunk.strip()
         trimmed = chunk.strip()
         if trimmed == "[object Object]":
             return ""

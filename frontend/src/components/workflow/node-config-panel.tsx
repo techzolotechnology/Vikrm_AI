@@ -105,7 +105,7 @@ export function NodeConfigPanel({ node, onChange, onClose, onDelete }: NodeConfi
               </Field>
               <Field label="Model Name">
                 <input
-                  value={node.data.model ?? "llama3.2"}
+                  value={node.data.model ?? "qwen3:8b"}
                   onChange={(e) => set({ model: e.target.value })}
                   className="input text-xs font-mono bg-background/60"
                 />
