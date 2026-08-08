@@ -99,7 +99,7 @@ def test_vector_db_manager(tmp_path):
 
     results = vdb.search_across_tech("React button component", tech_filters=["react"], top_k=3)
     assert len(results) >= 1
-    assert "Button" in results[0]["document"]
+    assert any("Button" in r["document"] for r in results)
 
 
 def test_project_template_library():

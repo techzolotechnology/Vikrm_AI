@@ -2,7 +2,9 @@
 Retriever Engine: Hybrid multi-source retriever fetching code examples, official documentation,
 and project templates based on user query intent.
 """
+import os
 import logging
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 from typing import Any, Dict, List, Optional
 
 try:

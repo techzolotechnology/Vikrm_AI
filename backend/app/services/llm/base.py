@@ -91,12 +91,11 @@ def normalize_content_chunk(chunk: Any) -> str:
         trimmed = chunk.strip()
         if trimmed == "[object Object]":
             return ""
-        if (trimmed.startswith("{") and trimmed.endswith("}")) or (trimmed.startswith("[") and trimmed.endswith("]")):
+        if (trimmed.startswith("{") and trimmed.endswith("}")) and '"files"' in trimmed:
             try:
                 parsed = json.loads(trimmed)
-                res = normalize_content_chunk(parsed)
-                if res != trimmed:
-                    return res
+                if isinstance(parsed, dict) and "files" in parsed:
+                    return normalize_content_chunk(parsed)
             except Exception:
                 pass
         return chunk

@@ -25,7 +25,7 @@ class IntentService:
         "build", "create", "generate", "develop", "make", "scaffold", "implement",
         "website", "web app", "application", "dashboard", "saas", "crm", "erp",
         "hospital", "portfolio", "clone", "next.js", "react", "spring", "fastapi",
-        "node", "ai", "backend", "frontend", "full stack", "project", "store",
+        "node", "ai app", "backend", "frontend", "full stack", "project", "store",
         "ecommerce", "e-commerce", "netflix", "lms", "cms", "kanban", "trello"
     ]
 
@@ -96,7 +96,7 @@ class IntentService:
         is_explicit_explanation = lower_text.startswith(IntentService.EXPLAIN_PREFIXES)
 
         # 4. ARTIFACT PROJECT MODE (Building new project)
-        has_project_keyword = any(kw in lower_text for kw in IntentService.PROJECT_KEYWORDS)
+        has_project_keyword = any(re.search(r"\b" + re.escape(kw) + r"\b", lower_text) for kw in IntentService.PROJECT_KEYWORDS)
         if has_project_keyword and not is_explicit_explanation:
             return {
                 "mode": ResponseMode.ARTIFACT_PROJECT,

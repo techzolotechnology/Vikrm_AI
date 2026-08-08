@@ -94,4 +94,4 @@ async def test_no_documents_means_no_document_system_message(
         pass
 
     system_messages = [m for role, m in captured_requests[0]["messages"] if role == "system"]
-    assert system_messages == []
+    assert not any("RELEVANT UPLOADED DOCUMENTS" in m for m in system_messages)

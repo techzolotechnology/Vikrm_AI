@@ -1601,12 +1601,18 @@ class LLMCodeSynthesizer:
         start_t = time.perf_counter()
         existing_manifest = "\n".join(f"- {path}" for path in list(existing_files.keys())[:30])
 
+        rag_section = ""
+        if hasattr(plan, "rag_context") and plan.rag_context:
+            rag_docs_str = "\n".join(f"- {doc[:300]}" for doc in plan.rag_context[:3])
+            rag_section = f"\nRelevant Knowledge / Reference Context:\n{rag_docs_str}\n"
+
         prompt = (
             f"You are Vikrm AI Autonomous Code Generator.\n"
             f"Batch: {batch_name}\n"
             f"Project: {plan.project_name} ({plan.domain})\n"
             f"Framework: {plan.framework} + {plan.database}\n"
-            f"Existing Files:\n{existing_manifest}\n\n"
+            f"Existing Files:\n{existing_manifest}\n"
+            f"{rag_section}\n"
             f"Generate production code files for batch '{batch_name}'."
         )
 

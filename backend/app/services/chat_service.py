@@ -300,37 +300,53 @@ class ChatService:
                 memory_lines = "\n".join(
                     f"- {memory.content}" for memory, _distance in relevant_memories
                 )
-                history.insert(
-                    0,
+                history.append(
                     ChatMessage(
                         role="system",
                         content=f"Relevant information you remember about this user:\n{memory_lines}",
-                    ),
+                    )
                 )
         except Exception as exc:
             logger.warning("[Memory Search] Memory search failed (non-fatal): %s", exc)
 
         logger.info("[Memory Search] Retrieved %d memory entries", len(relevant_memories) if relevant_memories else 0)
 
-        # Inject RAG document chunks and HF Datasets / Templates / Docs context
-        logger.info("[RAG Retrieval] Searching Hugging Face datasets, docs, and templates for prompt=%r", user_content[:80])
+        # Inject RAG uploaded user document chunks
         try:
-            retriever = get_knowledge_retriever()
-            retrieval_res = retriever.retrieve_context(query=user_content, top_k=10)
-            context_builder = RAGContextBuilder()
-            augmented_context_prompt = context_builder.build_augmented_prompt(
-                user_query=user_content, retrieval_results=retrieval_res
-            )
-            if augmented_context_prompt != user_content:
-                history.insert(
-                    0,
+            doc_chunks = await self._rag.search_chunks(user_id=conversation.user_id, query=user_content, top_k=4)
+            if doc_chunks:
+                doc_text = "\n\n".join(
+                    f"--- Source: {c.get('metadata', {}).get('filename', 'document')} ---\n{c.get('document', '')}"
+                    for c in doc_chunks
+                )
+                history.append(
                     ChatMessage(
                         role="system",
-                        content=augmented_context_prompt,
-                    ),
+                        content=f"RELEVANT UPLOADED DOCUMENTS:\n{doc_text}",
+                    )
                 )
         except Exception as exc:
-            logger.warning("[RAG Retrieval] Knowledge retrieval failed (non-fatal): %s", exc)
+            logger.warning("[RAG Search] User document search failed: %s", exc)
+
+        # Inject RAG document chunks and HF Datasets / Templates / Docs context for complex queries
+        if detected_mode == ResponseMode.ARTIFACT_PROJECT or len(user_content.split()) > 3:
+            logger.info("[RAG Retrieval] Searching Hugging Face datasets, docs, and templates for prompt=%r", user_content[:80])
+            try:
+                retriever = get_knowledge_retriever()
+                retrieval_res = retriever.retrieve_context(query=user_content, top_k=10)
+                context_builder = RAGContextBuilder()
+                augmented_context_prompt = context_builder.build_augmented_prompt(
+                    user_query=user_content, retrieval_results=retrieval_res
+                )
+                if augmented_context_prompt != user_content:
+                    history.append(
+                        ChatMessage(
+                            role="system",
+                            content=augmented_context_prompt,
+                        )
+                    )
+            except Exception as exc:
+                logger.warning("[RAG Retrieval] Knowledge retrieval failed (non-fatal): %s", exc)
 
 
         # Inject direct attachment text into the user message

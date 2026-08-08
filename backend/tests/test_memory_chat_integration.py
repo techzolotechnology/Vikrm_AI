@@ -91,4 +91,4 @@ async def test_no_memories_means_no_extra_system_message(
         pass
 
     system_messages = [m for role, m in captured_requests[0]["messages"] if role == "system"]
-    assert system_messages == []
+    assert not any("Relevant information you remember" in m for m in system_messages)
