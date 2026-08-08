@@ -61,7 +61,7 @@ async def run_live_verification():
         conv_resp = await client.post(f"{BASE_URL}/conversations", json={
             "title": "Live Verification Chat",
             "provider": "ollama",
-            "model": "llama3.2"
+            "model": "qwen3:8b"
         }, headers=headers)
         assert conv_resp.status_code == 201, f"Conversation creation failed: {conv_resp.text}"
         conv_id = conv_resp.json()["id"]

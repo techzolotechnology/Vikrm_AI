@@ -164,7 +164,7 @@ export function Chat() {
     anthropic: ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
     gemini: ["gemini-1.5-pro", "gemini-2.0-flash"],
     groq: ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "deepseek-r1-distill-llama-70b"],
-    ollama: ["llama3", "codellama", "mistral"],
+    ollama: ["qwen3:8b", "llama3", "codellama", "mistral"],
     openrouter: ["openrouter/auto", "anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
     deepseek: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
     qwen: ["qwen-max", "qwen-coder-turbo"],

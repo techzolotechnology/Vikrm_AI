@@ -162,7 +162,7 @@ async def phase2_3_test_all_providers():
     from app.services.llm.ollama_provider import OllamaProvider
 
     providers_to_test = [
-        ("ollama",      OllamaProvider(),      settings.DEFAULT_LLM_MODEL or "llama3.2"),
+        ("ollama",      OllamaProvider(),      settings.DEFAULT_LLM_MODEL or "qwen3:8b"),
         ("openai",      OpenAIProvider(),      "gpt-4o-mini"),
         ("anthropic",   AnthropicProvider(),   "claude-3-haiku-20240307"),
         ("gemini",      GeminiProvider(),      "gemini-1.5-flash"),
@@ -243,7 +243,7 @@ async def phase7_new_vs_existing():
 
     from app.services.llm.ollama_provider import OllamaProvider
     provider = OllamaProvider()
-    model = settings.DEFAULT_LLM_MODEL or "llama3.2"
+    model = settings.DEFAULT_LLM_MODEL or "qwen3:8b"
 
     # New conversation (no history)
     print("\n  Test A: Brand-new conversation (no history)...")
@@ -287,7 +287,7 @@ async def phase9_regression():
 
     from app.services.llm.ollama_provider import OllamaProvider
     provider = OllamaProvider()
-    model = settings.DEFAULT_LLM_MODEL or "llama3.2"
+    model = settings.DEFAULT_LLM_MODEL or "qwen3:8b"
 
     tasks = [
         ("Python Hello World",         "Write print('Hello World') in Python. Code only."),

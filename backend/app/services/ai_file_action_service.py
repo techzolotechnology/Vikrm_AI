@@ -106,7 +106,7 @@ class AIFileActionService:
         content: str,
         language: str,
         provider_name: str = "ollama",
-        model: str = "llama3.2",
+        model: str = "qwen3:8b",
     ) -> dict[str, Any]:
         """
         Execute an AI file action on the given file.

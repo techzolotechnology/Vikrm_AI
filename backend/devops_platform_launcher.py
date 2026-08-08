@@ -1,5 +1,5 @@
 """
-DevOps Platform Launcher: Starts Redis, Ollama (with llama3.2), FastAPI Backend, and React Frontend.
+DevOps Platform Launcher: Starts Redis, Ollama (with qwen3:8b), FastAPI Backend, and React Frontend.
 Monitors process health, automatically resolves startup issues, and keeps services alive.
 """
 import os
@@ -88,10 +88,10 @@ def ensure_services():
             req = urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=3)
             data = json.loads(req.read().decode())
             models = [m.get("name") for m in data.get("models", [])]
-            if not any("llama3.2" in m for m in models):
-                log("Pulling llama3.2 model into Ollama...")
-                subprocess.run(["ollama", "pull", "llama3.2"], check=False)
-            log("✅ Model 'llama3.2' installed in Ollama.")
+            if not any("qwen3" in m for m in models):
+                log("Pulling qwen3:8b model into Ollama...")
+                subprocess.run(["ollama", "pull", "qwen3:8b"], check=False)
+            log("✅ Model 'qwen3:8b' installed in Ollama.")
         except Exception as exc:
             log(f"Ollama model check: {exc}")
 

@@ -26,8 +26,8 @@ async def verify():
     models = await provider.list_installed_models()
     model_names = [m.get("name") for m in models]
     print(f"Installed Ollama models: {model_names}")
-    assert any("llama3.2" in name for name in model_names), "llama3.2 model not found in Ollama installed tags!"
-    print("[OK] Model llama3.2 verified in Ollama container.")
+    assert any("qwen3" in name for name in model_names), "qwen3:8b model not found in Ollama installed tags!"
+    print("[OK] Model qwen3:8b verified in Ollama container.")
 
     test_prompts = [
         "Hello",
@@ -46,7 +46,7 @@ async def verify():
         messages = [ChatMessage(role="user", content=prompt)]
         chunks = []
         try:
-            async for chunk in provider.stream_chat(messages=messages, model="llama3.2", temperature=0.7):
+            async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b", temperature=0.7):
                 chunks.append(chunk)
             full_text = "".join(chunks).strip()
             responses[prompt] = full_text

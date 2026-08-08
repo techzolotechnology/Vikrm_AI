@@ -92,7 +92,7 @@ async def run_phase2_3_audit():
 
         # 1. Create a Test User session / conversation
         print("[1/5] Creating test conversation thread...")
-        conv = await service.create_conversation(user_id=user_id, title="Audit Conversation", model="llama3.2")
+        conv = await service.create_conversation(user_id=user_id, title="Audit Conversation", model="qwen3:8b")
         print(f"  ✓ Created Conversation ID: {conv.id} (provider={conv.provider}, model={conv.model})")
 
         # 2. Test Prompts Suite
@@ -159,7 +159,7 @@ async def run_phase4_benchmark():
     chunks = []
 
     try:
-        async for chunk in provider.stream_chat(messages=messages, model="llama3.2"):
+        async for chunk in provider.stream_chat(messages=messages, model="qwen3:8b"):
             if first_token_time is None:
                 first_token_time = time.perf_counter()
             chunks.append(chunk)

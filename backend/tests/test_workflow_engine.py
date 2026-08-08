@@ -23,7 +23,7 @@ async def test_linear_workflow_start_llm_output(
             {
                 "id": "llm1",
                 "type": "llm",
-                "data": {"provider": "ollama", "model": "llama3.2", "prompt": "Echo: {{input}}"},
+                "data": {"provider": "ollama", "model": "qwen3:8b", "prompt": "Echo: {{input}}"},
             },
             {"id": "out", "type": "output", "data": {"template": "{{llm1.output}}"}},
         ],

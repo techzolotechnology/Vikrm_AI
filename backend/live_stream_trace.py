@@ -85,7 +85,7 @@ async def run_trace():
         # STEP 2: Create conversation
         r = await client.post(
             f"{API_BASE}/conversations",
-            json={"title": "Trace: FastAPI test", "provider": "ollama", "model": "llama3.2"},
+            json={"title": "Trace: FastAPI test", "provider": "ollama", "model": "qwen3:8b"},
             headers=headers,
         )
         if r.status_code not in (200, 201):
@@ -93,7 +93,7 @@ async def run_trace():
             return
         conv = r.json()
         conv_id = conv["id"]
-        print(f"\n[CONV] Created conv id={conv_id} provider=ollama model=llama3.2")
+        print(f"\n[CONV] Created conv id={conv_id} provider=ollama model=qwen3:8b")
 
         # STEP 3: Stream
         prompt = "Create a simple FastAPI app with a GET endpoint at /hello that returns {message: 'Hello World'}"

@@ -86,7 +86,7 @@ async def get_model_configs(
     _admin: User = Depends(require_admin)
 ) -> list[ModelConfigItem]:
     return [
-        ModelConfigItem(provider="ollama", model="llama3.2", status="active", latency_ms=45),
+        ModelConfigItem(provider="ollama", model="qwen3:8b", status="active", latency_ms=-1),  # unmeasured latency
         ModelConfigItem(provider="ollama", model="qwen2.5-coder", status="active", latency_ms=52),
         ModelConfigItem(provider="ollama", model="mistral", status="active", latency_ms=60),
         ModelConfigItem(provider="openai", model="gpt-4o", status="configured", latency_ms=120),

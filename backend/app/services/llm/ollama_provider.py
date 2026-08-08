@@ -5,7 +5,7 @@ import asyncio
 import json
 import socket
 import time
-from typing import AsyncIterator, List, Dict, Any
+from typing import AsyncIterator, List, Dict, Any, Optional
 
 import httpx
 import httpcore
@@ -47,26 +47,45 @@ class OllamaProvider(LLMProvider):
         return await ollama_client_manager.fetch_installed_models(self.base_url)
 
     async def chat(
-        self, *, messages: list[ChatMessage], model: str, temperature: float = 0.7
+        self,
+        *,
+        messages: list[ChatMessage],
+        model: str,
+        temperature: float = 0.7,
+        think: bool = False,
+        num_ctx: Optional[int] = None,
     ) -> str:
         """Non-streaming chat completion."""
         full_text = []
-        async for chunk in self.stream_chat(messages=messages, model=model, temperature=temperature):
+        async for chunk in self.stream_chat(
+            messages=messages, model=model, temperature=temperature, think=think, num_ctx=num_ctx
+        ):
             full_text.append(chunk)
         return "".join(full_text)
 
     async def stream_chat(
-        self, *, messages: list[ChatMessage], model: str, temperature: float = 0.7
+        self,
+        *,
+        messages: list[ChatMessage],
+        model: str,
+        temperature: float = 0.7,
+        think: bool = False,
+        num_ctx: Optional[int] = None,
     ) -> AsyncIterator[str]:
         start_time = time.perf_counter()
+        ctx_size = num_ctx if num_ctx is not None else settings.OLLAMA_NUM_CTX
         payload = {
             "model": model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "stream": True,
-            "options": {"temperature": temperature},
+            "options": {
+                "temperature": temperature,
+                "num_ctx": ctx_size,
+            },
+            "think": think,
         }
 
-        logger.info("[Incoming Request] Starting Ollama stream_chat for model=%s (messages=%d)", model, len(messages))
+        logger.info("[Incoming Request] Starting Ollama stream_chat for model=%s (messages=%d, num_ctx=%d, think=%s)", model, len(messages), ctx_size, think)
 
         # 1. Pre-flight Health Check & Process Check
         healthy_target_url = await ollama_client_manager.ping_health(self.base_url)
@@ -126,7 +145,10 @@ class OllamaProvider(LLMProvider):
                             # message dict. If that field is missing or empty, skip the chunk.
                             message_obj = chunk.get("message")
                             if isinstance(message_obj, dict):
-                                raw_content = message_obj.get("content") or ""
+                                if not think and message_obj.get("reasoning") and not message_obj.get("content"):
+                                    raw_content = ""
+                                else:
+                                    raw_content = message_obj.get("content") or ""
                             else:
                                 # Fallback for old /api/generate style responses
                                 raw_content = chunk.get("response") or ""

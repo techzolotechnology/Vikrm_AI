@@ -55,9 +55,9 @@ print("=" * 60)
 
 # Simulate the exact Ollama wire-format for chunks with empty content
 # (This is what Ollama sends at the END of a response, or when role-only chunks arrive)
-empty_content_chunk = {"model": "llama3.2", "message": {"role": "assistant", "content": ""}, "done": False}
-final_done_chunk     = {"model": "llama3.2", "message": {"role": "assistant", "content": ""}, "done": True}
-real_content_chunk   = {"model": "llama3.2", "message": {"role": "assistant", "content": "@app.get(\"/\")"}, "done": False}
+empty_content_chunk = {"model": "qwen3:8b", "message": {"role": "assistant", "content": ""}, "done": False}
+final_done_chunk     = {"model": "qwen3:8b", "message": {"role": "assistant", "content": ""}, "done": True}
+real_content_chunk   = {"model": "qwen3:8b", "message": {"role": "assistant", "content": "@app.get(\"/\")"}, "done": False}
 
 print("\n\n>>> STAGE 1: Raw Ollama Chunks (wire format)")
 for i, chunk in enumerate([real_content_chunk, empty_content_chunk, final_done_chunk]):

@@ -236,7 +236,7 @@ Docker Compose now includes an `ollama` service. After `docker compose up`,
 pull a model into it once:
 
 ```bash
-docker compose exec ollama ollama pull llama3.2
+docker compose exec ollama ollama pull qwen3:8b
 ```
 
 Any model tag Ollama supports works — update `DEFAULT_LLM_MODEL` in
@@ -295,7 +295,7 @@ Key properties:
 List the current user's conversations, most recently updated first.
 
 ### `POST /conversations`
-**Request** (all fields optional): `{ "title": "...", "provider": "ollama", "model": "llama3.2" }`
+**Request** (all fields optional): `{ "title": "...", "provider": "ollama", "model": "qwen3:8b" }`
 
 ### `GET /conversations/{id}`
 Returns the conversation with full message history.
@@ -377,7 +377,7 @@ List the current user's agents.
   "goal": "Always cite sources.",
   "personality": "Formal and precise.",
   "provider": "ollama",
-  "model": "llama3.2",
+  "model": "qwen3:8b",
   "temperature": 0.3,
   "max_tokens": 2048,
   "avatar_color": "#7C3AED"

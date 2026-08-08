@@ -18,7 +18,7 @@ class FileActionRequest(BaseModel):
     content: str = Field(..., description="File content (max 8000 chars)")
     language: str = Field("typescript", description="Programming language")
     provider: str = Field("ollama", description="LLM provider")
-    model: str = Field("llama3.2", description="Model name")
+    model: str = Field("qwen3:8b", description="Model name")
 
 
 @router.post("/execute")

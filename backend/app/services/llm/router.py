@@ -44,7 +44,7 @@ class ModelRouter:
         if offline or free_mode:
             return RouteDecision(
                 provider="ollama",
-                model="llama3",
+                model="qwen3:8b",
                 reason="Offline or free execution mode selected"
             )
 

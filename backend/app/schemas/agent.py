@@ -11,7 +11,7 @@ class AgentBase(BaseModel):
     goal: str | None = None
     personality: str | None = None
     provider: str = "ollama"
-    model: str = "llama3.2"
+    model: str = "qwen3:8b"
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: int = Field(default=2048, ge=1, le=32768)
 

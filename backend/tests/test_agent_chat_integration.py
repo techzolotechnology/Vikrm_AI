@@ -57,7 +57,7 @@ async def test_conversation_from_agent_injects_system_prompt_and_temperature(
         goal="Always cite sources.",
         personality=None,
         provider="ollama",
-        model="llama3.2",
+        model="qwen3:8b",
         temperature=0.2,
         max_tokens=1024,
     )
@@ -71,7 +71,7 @@ async def test_conversation_from_agent_injects_system_prompt_and_temperature(
     # Agent settings should have seeded the conversation.
     assert conversation.title == "Research Assistant"
     assert conversation.provider == "ollama"
-    assert conversation.model == "llama3.2"
+    assert conversation.model == "qwen3:8b"
     assert conversation.agent_id == agent.id
 
     async for _ in service.stream_reply(conversation=conversation, user_content="hi"):

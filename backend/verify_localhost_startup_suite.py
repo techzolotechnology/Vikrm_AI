@@ -74,8 +74,8 @@ def verify_ollama():
         data = json.loads(req.read().decode())
         models = [m.get("name") for m in data.get("models", [])]
         print(" • Installed Models     :", models)
-        has_llama = any("llama3.2" in m for m in models)
-        print(" • Model 'llama3.2'     :", "Available" if has_llama else "Not Installed")
+        has_qwen = any("qwen3" in m for m in models)
+        print(" • Model 'qwen3:8b'     :", "Available" if has_qwen else "Not Installed")
     except Exception as exc:
         print(" • Ollama API Error    :", exc)
 
