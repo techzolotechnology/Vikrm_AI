@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { X, Sliders, Info, Trash2, Sparkles } from "lucide-react";
 
 import { useAgents } from "@/hooks/use-agents";
+import { useProviders } from "@/hooks/use-providers";
 import { useTools } from "@/hooks/use-workflows";
 import type { WorkflowNode, WorkflowNodeData } from "@/types/workflow";
 
@@ -27,6 +28,7 @@ interface NodeConfigPanelProps {
 export function NodeConfigPanel({ node, onChange, onClose, onDelete }: NodeConfigPanelProps) {
   const { data: agents = [] } = useAgents();
   const { data: tools = [] } = useTools();
+  const { providerModels, providerList } = useProviders();
   const [activeTab, setActiveTab] = useState<"config" | "help">("config");
 
   const set = (patch: Partial<WorkflowNodeData>) => onChange({ ...node.data, ...patch });
@@ -92,23 +94,33 @@ export function NodeConfigPanel({ node, onChange, onClose, onDelete }: NodeConfi
               </Field>
               <Field label="Model Provider">
                 <select
-                  value={node.data.provider ?? "ollama"}
-                  onChange={(e) => set({ provider: e.target.value })}
+                  value={node.data.provider ?? (providerList[0] || "ollama")}
+                  onChange={(e) => {
+                    const newProv = e.target.value;
+                    const defaultM = providerModels[newProv]?.[0] ?? "qwen3:8b";
+                    set({ provider: newProv, model: defaultM });
+                  }}
                   className="input text-xs bg-background/60"
                 >
-                  <option value="ollama">Ollama (Local)</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="gemini">Google Gemini</option>
-                  <option value="groq">Groq</option>
+                  {providerList.map((p) => (
+                    <option key={p} value={p}>
+                      {p.charAt(0).toUpperCase() + p.slice(1)} {p === "ollama" ? "(Local)" : ""}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="Model Name">
-                <input
+                <select
                   value={node.data.model ?? "qwen3:8b"}
                   onChange={(e) => set({ model: e.target.value })}
                   className="input text-xs font-mono bg-background/60"
-                />
+                >
+                  {(providerModels[node.data.provider ?? "ollama"] || ["qwen3:8b"]).map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field label={`Temperature: ${(node.data.temperature ?? 0.7).toFixed(1)}`}>
                 <input

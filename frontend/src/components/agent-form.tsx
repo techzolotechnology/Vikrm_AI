@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Bot, Cpu, Thermometer, Palette, Sparkles } from "lucide-react";
 
 import { useCreateAgent } from "@/hooks/use-agents";
+import { useProviders } from "@/hooks/use-providers";
 
 const COLOR_OPTIONS = ["#7C3AED", "#22D3EE", "#22C55E", "#F59E0B", "#EF4444", "#EC4899", "#F97316", "#06B6D4"];
 
 export function AgentForm({ onClose }: { onClose: () => void }) {
   const createAgent = useCreateAgent();
+  const { providerModels } = useProviders();
+  const availableModels = providerModels.ollama || ["qwen3:8b"];
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -130,12 +133,17 @@ export function AgentForm({ onClose }: { onClose: () => void }) {
 
               {/* Model */}
               <Field label="Model" icon={<Cpu className="h-3 w-3 text-accent/60" />}>
-                <input
+                <select
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  placeholder="qwen3:8b"
-                  className="input text-sm font-mono"
-                />
+                  className="input text-sm font-mono bg-background/60"
+                >
+                  {availableModels.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
               </Field>
 
               {/* Temperature */}

@@ -26,6 +26,7 @@ import { ConversationSidebar } from "@/components/conversation-sidebar";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { MessageBubble } from "@/components/message-bubble";
 import { useAgents } from "@/hooks/use-agents";
+import { useProviders } from "@/hooks/use-providers";
 import {
   useChatStream,
   useConversation,
@@ -156,20 +157,19 @@ export function Chat() {
 
   const isEmpty = activeId === null || (localMessages || []).length === 0;
 
-  const [selectedProvider, setSelectedProvider] = useState("openai");
-  const [selectedModel, setSelectedModel] = useState("gpt-4o");
+  const { providerModels, providerList, ollamaOnline } = useProviders();
+  const [selectedProvider, setSelectedProvider] = useState("ollama");
+  const [selectedModel, setSelectedModel] = useState("qwen3:8b");
 
-  const PROVIDER_MODELS: Record<string, string[]> = {
-    openai: ["gpt-4o", "gpt-4-turbo", "o1", "o3-mini"],
-    anthropic: ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
-    gemini: ["gemini-1.5-pro", "gemini-2.0-flash"],
-    groq: ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "deepseek-r1-distill-llama-70b"],
-    ollama: ["qwen3:8b", "llama3", "codellama", "mistral"],
-    openrouter: ["openrouter/auto", "anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
-    deepseek: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"],
-    qwen: ["qwen-max", "qwen-coder-turbo"],
-    mistral: ["mistral-large-latest", "codestral-latest"],
-  };
+  useEffect(() => {
+    if (providerList.length > 0 && !providerList.includes(selectedProvider)) {
+      const firstProv = providerList[0];
+      setSelectedProvider(firstProv);
+      if (providerModels[firstProv]?.length > 0) {
+        setSelectedModel(providerModels[firstProv][0]);
+      }
+    }
+  }, [providerList, providerModels, selectedProvider]);
 
   return (
     <ErrorBoundary fallbackTitle="Chat Application Error">
@@ -242,32 +242,36 @@ export function Chat() {
                     onChange={(e) => {
                       const prov = e.target.value;
                       setSelectedProvider(prov);
-                      setSelectedModel(PROVIDER_MODELS[prov][0]);
+                      if (providerModels[prov]?.length > 0) {
+                        setSelectedModel(providerModels[prov][0]);
+                      }
                     }}
                     className="bg-surface/80 border border-border/60 rounded-lg px-2 py-0.5 text-[11px] font-mono text-cyan-400 focus:outline-none"
                   >
-                    <option value="openai">OpenAI</option>
-                    <option value="anthropic">Anthropic Claude</option>
-                    <option value="gemini">Google Gemini</option>
-                    <option value="groq">Groq</option>
-                    <option value="ollama">Ollama (Offline)</option>
-                    <option value="openrouter">OpenRouter</option>
-                    <option value="deepseek">DeepSeek</option>
-                    <option value="qwen">Qwen</option>
-                    <option value="mistral">Mistral</option>
-                  </select>
-
-                  <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="bg-surface/80 border border-border/60 rounded-lg px-2 py-0.5 text-[11px] font-mono text-purple-300 focus:outline-none"
-                  >
-                    {(PROVIDER_MODELS[selectedProvider] || []).map((m) => (
-                      <option key={m} value={m}>
-                        {m}
+                    {providerList.map((p) => (
+                      <option key={p} value={p}>
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
                       </option>
                     ))}
                   </select>
+
+                  {selectedProvider === "ollama" && !ollamaOnline ? (
+                    <span className="text-[11px] font-mono text-amber-400 border border-amber-400/30 bg-amber-400/10 rounded-lg px-2 py-0.5">
+                      ⚠️ Ollama is not running.
+                    </span>
+                  ) : (
+                    <select
+                      value={selectedModel}
+                      onChange={(e) => setSelectedModel(e.target.value)}
+                      className="bg-surface/80 border border-border/60 rounded-lg px-2 py-0.5 text-[11px] font-mono text-purple-300 focus:outline-none"
+                    >
+                      {(providerModels[selectedProvider] || ["qwen3:8b"]).map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
             </div>

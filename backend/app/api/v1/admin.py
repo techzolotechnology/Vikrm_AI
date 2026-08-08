@@ -85,10 +85,28 @@ async def get_system_logs(
 async def get_model_configs(
     _admin: User = Depends(require_admin)
 ) -> list[ModelConfigItem]:
-    return [
-        ModelConfigItem(provider="ollama", model="qwen3:8b", status="active", latency_ms=-1),  # unmeasured latency
-        ModelConfigItem(provider="ollama", model="qwen2.5-coder", status="active", latency_ms=52),
-        ModelConfigItem(provider="ollama", model="mistral", status="active", latency_ms=60),
-        ModelConfigItem(provider="openai", model="gpt-4o", status="configured", latency_ms=120),
-        ModelConfigItem(provider="anthropic", model="claude-3-5-sonnet", status="configured", latency_ms=135),
+    from app.services.llm.ollama_provider import OllamaProvider
+    from app.core.config import settings
+    
+    items: list[ModelConfigItem] = []
+    try:
+        ollama_models = await OllamaProvider().list_installed_models()
+        for m in ollama_models:
+            items.append(ModelConfigItem(provider="ollama", model=m, status="active", latency_ms=-1))
+    except Exception:
+        items.append(ModelConfigItem(provider="ollama", model="qwen3:8b", status="active", latency_ms=-1))
+
+    if not items:
+        items.append(ModelConfigItem(provider="ollama", model="qwen3:8b", status="active", latency_ms=-1))
+
+    CLOUD_PROVIDERS = [
+        ("openai", settings.OPENAI_API_KEY, "gpt-4o"),
+        ("anthropic", settings.ANTHROPIC_API_KEY, "claude-3-5-sonnet"),
+        ("gemini", settings.GEMINI_API_KEY, "gemini-2.0-flash"),
+        ("groq", settings.GROQ_API_KEY, "llama-3.3-70b-versatile"),
     ]
+    for prov, key, default_m in CLOUD_PROVIDERS:
+        if key and key.strip():
+            items.append(ModelConfigItem(provider=prov, model=default_m, status="configured", latency_ms=-1))
+
+    return items
