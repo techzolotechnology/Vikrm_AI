@@ -3,8 +3,10 @@ Ollama provider with persistent HTTP client manager, process auto-spawning, heal
 """
 import asyncio
 import json
+import os
 import socket
 import time
+
 from typing import AsyncIterator, List, Dict, Any, Optional
 
 import httpx
@@ -82,8 +84,9 @@ class OllamaProvider(LLMProvider):
                 "temperature": temperature,
                 "num_ctx": ctx_size,
             },
-            "think": think,
         }
+        if think:
+            payload["think"] = True
 
         logger.info("[Incoming Request] Starting Ollama stream_chat for model=%s (messages=%d, num_ctx=%d, think=%s)", model, len(messages), ctx_size, think)
 
@@ -101,7 +104,11 @@ class OllamaProvider(LLMProvider):
         last_exception: Exception | None = None
         
         # Exponential backoff schedule: 1s, 2s, 4s, 8s, 16s (Phase 4 requirement)
-        backoff_delays = [1.0, 2.0, 4.0, 8.0, 16.0]
+        if os.environ.get("VIKRM_TEST_MODE") == "1":
+            backoff_delays = [0.1]
+        else:
+            backoff_delays = [1.0, 2.0, 4.0, 8.0, 16.0]
+
 
         for target_url in target_urls:
             endpoint = f"{target_url}/api/chat"

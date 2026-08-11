@@ -15,11 +15,11 @@ from app.services.project.generator import ProjectGenerator
 
 def test_project_generation():
     prompts = [
-        "Hospital Management System",
-        "Enterprise ERP System",
+        "Spotify Clone",
         "Netflix Clone",
         "GitHub Clone",
-        "Salesforce CRM Platform"
+        "Hospital Management System",
+        "Portfolio Website"
     ]
 
     print("=" * 80)

@@ -10,10 +10,7 @@ from app.services.datasets.dataset_cleaner import DatasetCleaner
 from app.services.embeddings.chunker import DocumentChunker
 from app.services.embeddings.embedder import CodeEmbedder
 from app.services.embeddings.vector_store import MultiCollectionVectorStore
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from vector_db.vector_db_manager import VectorDBManager
 
 
 logger = logging.getLogger(__name__)

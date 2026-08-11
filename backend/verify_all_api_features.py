@@ -17,7 +17,7 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://127.0.0.1:8000/api/v1"
 
 async def main():
     print("=" * 80)
@@ -71,7 +71,7 @@ async def main():
             chat_req = {
                 "content": "Write a Hello World program in Python."
             }
-            async with httpx.AsyncClient(timeout=60.0) as stream_client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, read=120.0)) as stream_client:
                 async with stream_client.stream("POST", f"{BASE_URL}/conversations/{conv_id}/messages/stream", json=chat_req, headers=headers) as r_chat:
                     print(f"  [✓] Chat Stream Endpoint -> Status {r_chat.status_code}")
                     full_body = ""

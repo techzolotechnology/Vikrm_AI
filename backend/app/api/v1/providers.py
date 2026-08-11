@@ -50,7 +50,12 @@ async def list_all_models(_user: User = Depends(get_current_user)):
     ollama_online = False
     try:
         provider = OllamaProvider()
-        ollama_models = await provider.list_installed_models()
+        raw_models = await provider.list_installed_models()
+        ollama_models = [
+            m.get("name") if isinstance(m, dict) else str(m)
+            for m in raw_models
+            if (isinstance(m, dict) and m.get("name")) or isinstance(m, str)
+        ]
         ollama_online = True
     except Exception:
         ollama_online = False
@@ -67,17 +72,23 @@ async def list_all_models(_user: User = Depends(get_current_user)):
         "groq": (settings.GROQ_API_KEY, ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "deepseek-r1-distill-llama-70b"]),
         "openrouter": (settings.OPENROUTER_API_KEY, ["openrouter/auto", "anthropic/claude-3.5-sonnet", "openai/gpt-4o"]),
         "deepseek": (settings.DEEPSEEK_API_KEY, ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"]),
-        "qwen": (settings.QWEN_API_KEY, ["qwen-max", "qwen-coder-turbo"]),
-        "mistral": (settings.MISTRAL_API_KEY, ["mistral-large-latest", "codestral-latest"]),
+        "qwen": (getattr(settings, "QWEN_API_KEY", None), ["qwen-max", "qwen-coder-turbo"]),
+        "mistral": (getattr(settings, "MISTRAL_API_KEY", None), ["mistral-large-latest", "codestral-latest"]),
     }
 
     for name, (api_key, models) in CLOUD_CATALOG.items():
         if api_key and api_key.strip():
             configured_providers[name] = models
 
+    def_model = settings.effective_default_model
+    if ollama_models and def_model not in ollama_models and len(ollama_models) > 0:
+        # If configured default is not in installed models, pick first installed ollama model as default
+        def_model = ollama_models[0]
+
     return {
         "providers": configured_providers,
-        "ollama_online": ollama_online
+        "ollama_online": ollama_online,
+        "default_model": def_model,
     }
 
 

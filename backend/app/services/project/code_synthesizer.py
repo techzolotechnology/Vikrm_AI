@@ -1659,7 +1659,7 @@ class LLMCodeSynthesizer:
         """
         files: dict[str, str] = {}
 
-        # ── Scaffold (Phase T01, T02) ──────────────────
+        # ── Pure Scaffold Configuration Files ──────────
         files["package.json"] = _build_package_json(plan)
         files["tsconfig.json"] = _build_tsconfig(plan)
         files["tsconfig.app.json"] = _build_tsconfig_app(plan)
@@ -1669,37 +1669,11 @@ class LLMCodeSynthesizer:
         files["index.html"] = _build_index_html(plan)
         files[".gitignore"] = _build_gitignore(plan)
         files[".env.example"] = _build_env_example(plan)
-
-        # ── Styles ─────────────────────────────────────
         files["src/index.css"] = _build_index_css(plan)
-
-        # ── API Client ─────────────────────────────────
-        files["src/api/apiClient.ts"] = _build_api_client(plan)
-
-        # ── Auth System ────────────────────────────────
-        files["src/context/AuthContext.tsx"] = _build_auth_context(plan)
-
-        # ── Layout Components ──────────────────────────
-        files["src/components/layout/Layout.tsx"] = _build_layout(plan)
-        files["src/components/layout/Header.tsx"] = _build_header(plan)
-        files["src/components/layout/Sidebar.tsx"] = _build_sidebar(plan)
-
-        # ── Router & Protected Route ───────────────────
-        files["src/routes/ProtectedRoute.tsx"] = _build_protected_route(plan)
-
-        # ── Pages ──────────────────────────────────────
-        files["src/pages/LoginPage.tsx"] = _build_login_page(plan)
-        files["src/pages/RegisterPage.tsx"] = _build_register_page(plan)
-        files["src/pages/DashboardPage.tsx"] = _build_dashboard_page(plan)
-
-        # ── App Root ───────────────────────────────────
-        files["src/App.tsx"] = _build_app_tsx(plan)
         files["src/main.tsx"] = _build_main_tsx(plan)
-
-        # ── Backend ────────────────────────────────────
-        files["server/main.py"] = _build_fastapi_backend(plan)
         files["server/requirements.txt"] = _build_server_requirements(plan)
         files["server/Dockerfile"] = _build_server_dockerfile(plan)
+
 
         # ── Tests ──────────────────────────────────────
         files["src/__tests__/App.test.tsx"] = _build_vitest_test(plan)

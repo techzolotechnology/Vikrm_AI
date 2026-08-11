@@ -99,7 +99,7 @@ class ChatService:
         agent_id: int | None = None,
     ) -> Conversation:
         resolved_provider = provider or settings.DEFAULT_LLM_PROVIDER
-        resolved_model = model or settings.DEFAULT_LLM_MODEL
+        resolved_model = model or settings.effective_default_model
         resolved_title = title or "New Conversation"
 
         if agent_id is not None:
@@ -217,20 +217,45 @@ class ChatService:
         conversation: Conversation,
         user_content: str,
         attachment_ids: list[int] | None = None,
+        request_provider: str | None = None,
+        request_model: str | None = None,
     ) -> AsyncIterator[str]:
         """
-        Stream AI reply tokens.
-
-        PERFORMANCE: We do NOT commit on every token. Instead we:
-        1. Flush user + assistant messages once before streaming.
-        2. Accumulate all tokens in-memory.
-        3. Write the full response + commit ONCE after streaming completes.
-        This eliminates the per-token DB serialization bottleneck.
+        Stream AI reply tokens with dynamic model resolution.
         """
         import time
         start_time = time.perf_counter()
 
-        logger.info("[Incoming Request] conversation_id=%s user_id=%s prompt=%r", conversation.id, conversation.user_id, user_content[:80])
+        # Dynamic Model & Provider Resolution Hierarchy:
+        # Request model -> Conversation model -> Agent model -> Environment default -> Fallback ("qwen3:8b")
+        effective_provider = (
+            request_provider
+            or conversation.provider
+            or settings.DEFAULT_LLM_PROVIDER
+            or "ollama"
+        )
+
+        effective_model = request_model
+        if not effective_model or effective_model in ("llama3", "llama3.2", "fake"):
+            if conversation.model and conversation.model not in ("llama3", "llama3.2", "fake"):
+                effective_model = conversation.model
+            elif conversation.agent_id is not None:
+                agent = await self._agents.get_by_id(conversation.agent_id, user_id=conversation.user_id)
+                if agent and agent.model and agent.model not in ("llama3", "llama3.2", "fake"):
+                    effective_model = agent.model
+
+        if not effective_model or effective_model in ("llama3", "llama3.2", "fake"):
+            effective_model = settings.effective_default_model or "qwen3:8b"
+
+        # Auto-update conversation record if request model changed or legacy model was updated
+        if conversation.model != effective_model or conversation.provider != effective_provider:
+            conversation.model = effective_model
+            conversation.provider = effective_provider
+
+        logger.info(
+            "[Incoming Request] conversation_id=%s user_id=%s req_model=%s eff_model=%s prompt=%r",
+            conversation.id, conversation.user_id, request_model, effective_model, user_content[:80]
+        )
 
         # 1. Semantic Intent Classification
         intent_res = IntentService.classify_intent(user_content)
@@ -445,7 +470,7 @@ class ChatService:
                 return
 
             # Full Artifact Generation Mode
-            async for event_type, content in AgentLoop.run(user_content):
+            async for event_type, content in AgentLoop.run(user_content, provider=effective_provider, model=effective_model):
                 if event_type == "status":
                     status_line = f"> {content}\n"
                     full_generated_text += status_line
@@ -479,17 +504,17 @@ class ChatService:
             await self._session.commit()
             return
 
-        provider = get_provider(conversation.provider)
+        provider = get_provider(effective_provider)
         full_response_tokens: list[str] = []
 
-        logger.info("[Ollama Request] Invoking provider=%s model=%s conversation_id=%s", conversation.provider, conversation.model, conversation.id)
+        logger.info("[LLM Request] Invoking provider=%s model=%s conversation_id=%s", effective_provider, effective_model, conversation.id)
 
         has_streamed_first_token = False
 
         try:
             async for chunk in provider.stream_chat(
                 messages=history,
-                model=conversation.model,
+                model=effective_model,
                 temperature=temperature,
             ):
                 if not has_streamed_first_token:

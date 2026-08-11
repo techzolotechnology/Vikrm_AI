@@ -25,6 +25,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     with op.batch_alter_table("conversations") as batch_op:
-        batch_op.alter_column("model", server_default="llama3.2")
+        batch_op.alter_column("model", server_default="qwen3:8b")
     with op.batch_alter_table("agents") as batch_op:
-        batch_op.alter_column("model", server_default="llama3.2")
+        batch_op.alter_column("model", server_default="qwen3:8b")

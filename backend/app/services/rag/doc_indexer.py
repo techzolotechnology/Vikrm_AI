@@ -6,10 +6,7 @@ import logging
 from typing import Any, Dict, List
 
 from app.services.embeddings.embedder import CodeEmbedder
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from vector_db.vector_db_manager import VectorDBManager
 
 
 logger = logging.getLogger(__name__)

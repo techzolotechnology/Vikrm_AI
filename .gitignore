@@ -31,6 +31,8 @@ build/
 *.sqlite
 *.sqlite3
 data/*.db
+dump.rdb
+backend/data/
 
 # IDE & OS files
 .DS_Store

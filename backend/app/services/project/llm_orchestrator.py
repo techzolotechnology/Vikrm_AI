@@ -44,7 +44,9 @@ class LLMOrchestrator:
         temperature: float = 0.2,
     ) -> str:
         prov_name = provider_name or self.default_provider or settings.DEFAULT_LLM_PROVIDER
-        mdl = model or self.default_model or settings.DEFAULT_LLM_MODEL
+        mdl = model or self.default_model or settings.effective_default_model
+        if not mdl or mdl in ("llama3", "llama3.2", "fake"):
+            mdl = settings.effective_default_model or "qwen3:8b"
         last_error: Optional[Exception] = None
 
         for attempt in range(1, self.max_retries + 1):
