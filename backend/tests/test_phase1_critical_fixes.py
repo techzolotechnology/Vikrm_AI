@@ -24,9 +24,9 @@ async def test_build_loop_engine_phase1_status():
     statuses = [r.status for r in results]
     assert "not_yet_implemented" in statuses or "simulated" in statuses
     # Confirm no step makes unverified fake "passed" claims
-    build_step = next((r for r in results if r.step == "Build"), None)
-    assert build_step is not None
-    assert build_step.status == "not_yet_implemented"
+    preview_step = next((r for r in results if r.step == "Preview"), None)
+    assert preview_step is not None
+    assert preview_step.status == "not_yet_implemented"
 
 
 @pytest.mark.asyncio

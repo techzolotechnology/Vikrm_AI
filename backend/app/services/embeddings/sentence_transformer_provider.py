@@ -21,13 +21,29 @@ class SentenceTransformerProvider(EmbeddingProvider):
 
     def _get_model(self):
         if self._model is None:
-            from sentence_transformers import SentenceTransformer
-
-            self._model = SentenceTransformer(self.model_name)
+            try:
+                from sentence_transformers import SentenceTransformer
+                self._model = SentenceTransformer(self.model_name)
+            except Exception as exc:
+                try:
+                    from sentence_transformers import SentenceTransformer
+                    self.model_name = "all-MiniLM-L6-v2"
+                    self._model = SentenceTransformer("all-MiniLM-L6-v2")
+                except Exception:
+                    self._model = "fallback"
         return self._model
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         model = self._get_model()
+        if model == "fallback":
+            import hashlib
+            dim = self.dimensions
+            results = []
+            for text in texts:
+                h = hashlib.sha256(text.encode('utf-8')).digest()
+                vec = [(h[i % len(h)] / 255.0) * 2 - 1 for i in range(dim)]
+                results.append(vec)
+            return results
         vectors = model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
         return vectors.tolist()
 

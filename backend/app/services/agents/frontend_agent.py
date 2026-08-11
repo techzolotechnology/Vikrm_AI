@@ -36,9 +36,20 @@ class FrontendAgent:
             f"You are the Frontend Lead AI Agent.\n"
             f"Target App: {inp.plan.name} ({inp.spec.domain})\n"
             f"Features: {', '.join(inp.spec.features)}\n"
-            f"Generate React 19 + TypeScript frontend files (e.g. src/App.tsx, src/pages/DashboardPage.tsx, src/components/Header.tsx).\n"
+            f"Mandatory Required Canonical File Paths Checklist (You MUST generate complete production implementation for each of these exact paths, customized specifically for {inp.plan.name}):\n"
+            f"1. src/pages/LoginPage.tsx\n"
+            f"2. src/pages/RegisterPage.tsx\n"
+            f"3. src/pages/DashboardPage.tsx\n"
+            f"4. src/context/AuthContext.tsx\n"
+            f"5. src/components/Sidebar.tsx\n"
+            f"6. src/components/Header.tsx\n"
+            f"7. src/components/Layout.tsx\n"
+            f"8. src/components/ProtectedRoute.tsx\n"
+            f"9. src/lib/apiClient.ts\n"
+            f"10. src/App.tsx\n\n"
             f"Use markdown file headers: ### path/to/file.ext followed by code blocks."
         )
+
 
         messages = [
             ChatMessage(role="system", content="Generate complete production React 19 + Tailwind CSS frontend code files."),

@@ -100,11 +100,12 @@ export const workspaceApi = {
     return res.data;
   },
 
-  getModels: async (): Promise<{ providers: Record<string, string[]>; ollama_online: boolean }> => {
+  getModels: async (): Promise<{ providers: Record<string, string[]>; ollama_online: boolean; default_model?: string }> => {
     const res = await apiClient.get("/providers/models");
     return {
       providers: res.data.providers || { ollama: ["qwen3:8b"] },
       ollama_online: res.data.ollama_online ?? true,
+      default_model: res.data.default_model || "qwen3:8b",
     };
   },
 

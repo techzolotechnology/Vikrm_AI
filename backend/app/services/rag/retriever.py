@@ -7,17 +7,10 @@ import logging
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
 from typing import Any, Dict, List, Optional
 
-try:
-    from project_templates.template_manager import ProjectTemplateLibrary
-except ImportError:
-    from backend.project_templates.template_manager import ProjectTemplateLibrary
-
+from project_templates.template_manager import ProjectTemplateLibrary
 from app.services.rag.doc_indexer import DocumentationIndexer
 from app.services.rag.reranker import ContextReranker
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from vector_db.vector_db_manager import VectorDBManager
 
 
 logger = logging.getLogger(__name__)

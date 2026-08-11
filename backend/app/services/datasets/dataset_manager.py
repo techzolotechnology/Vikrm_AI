@@ -12,10 +12,7 @@ from app.services.datasets.dataset_cleaner import DatasetCleaner
 from app.services.datasets.dataset_downloader import DatasetDownloader, SUPPORTED_DATASETS
 from app.services.datasets.dataset_indexer import DatasetIndexer
 from app.services.datasets.dataset_updater import DatasetUpdater
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from vector_db.vector_db_manager import VectorDBManager
 
 
 logger = logging.getLogger(__name__)

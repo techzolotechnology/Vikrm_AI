@@ -84,3 +84,34 @@ class CodeSynthesisEngine:
             logger.warning("[CodeSynthesisEngine] Batch synthesis warning (%s): %s", batch_name, exc)
 
         return synthesized_files
+
+    CANONICAL_PATHS = [
+        "src/pages/LoginPage.tsx",
+        "src/pages/RegisterPage.tsx",
+        "src/pages/DashboardPage.tsx",
+        "src/context/AuthContext.tsx",
+        "src/components/Sidebar.tsx",
+        "src/components/Header.tsx",
+        "src/components/Layout.tsx",
+        "src/components/ProtectedRoute.tsx",
+        "src/lib/apiClient.ts",
+        "server/main.py",
+    ]
+
+    @classmethod
+    def verify_canonical_paths(cls, files: Dict[str, str]) -> List[str]:
+        """
+        Post-generation assertion that logs a warning if canonical paths are missing.
+        """
+        missing = []
+        for p in cls.CANONICAL_PATHS:
+            base_name = p.split("/")[-1]
+            has_file = any(f == p or f.endswith(f"/{base_name}") for f in files)
+            if not has_file:
+                missing.append(p)
+        if missing:
+            logger.warning("[CodeSynthesisEngine] Post-generation assertion warning — missing canonical paths: %s", missing)
+        else:
+            logger.info("[CodeSynthesisEngine] Post-generation assertion passed: all canonical paths populated.")
+        return missing
+

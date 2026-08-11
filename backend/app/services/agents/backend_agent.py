@@ -37,9 +37,13 @@ class BackendAgent:
             f"Target App: {inp.plan.name} ({inp.spec.domain})\n"
             f"Required Features: {', '.join(inp.spec.features)}\n"
             f"Domain Entities: {', '.join(inp.spec.entities)}\n"
-            f"Generate backend server files (e.g. server/main.py, server/requirements.txt, server/app/api/routes.py).\n"
+            f"Mandatory Required Canonical File Paths Checklist (You MUST generate complete production implementation for each of these exact paths, customized specifically for {inp.plan.name}):\n"
+            f"1. server/main.py\n"
+            f"2. server/requirements.txt\n"
+            f"3. server/app/api/routes.py\n\n"
             f"Use markdown file headers: ### path/to/file.ext followed by code blocks."
         )
+
 
         messages = [
             ChatMessage(role="system", content="Generate complete, production-grade FastAPI / Python backend code files."),

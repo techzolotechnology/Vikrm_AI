@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(255), nullable=False, server_default="New Conversation"),
         sa.Column("provider", sa.String(50), nullable=False, server_default="ollama"),
-        sa.Column("model", sa.String(100), nullable=False, server_default="llama3.2"),
+        sa.Column("model", sa.String(100), nullable=False, server_default="qwen3:8b"),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
         sa.Column(
             "updated_at",

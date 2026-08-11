@@ -14,15 +14,8 @@ from app.services.embeddings.embedder import CodeEmbedder
 from app.services.embeddings.chunker import DocumentChunker
 from app.services.rag.retriever import KnowledgeRetriever
 from app.services.rag.context_builder import RAGContextBuilder
-try:
-    from project_templates.template_manager import ProjectTemplateLibrary
-except ImportError:
-    from backend.project_templates.template_manager import ProjectTemplateLibrary
-
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from project_templates.template_manager import ProjectTemplateLibrary
+from vector_db.vector_db_manager import VectorDBManager
 
 
 

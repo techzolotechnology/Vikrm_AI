@@ -62,7 +62,8 @@ def test_incremental_edit_engine_targeted_patching():
     assert "src/App.tsx" in ctx.files
 
 
-def test_validation_service_import_resolution_and_repair():
+@pytest.mark.asyncio
+async def test_validation_service_import_resolution_and_repair():
     """Verify multi-file import resolution and self-repair capabilities."""
     valid_files = {
         "src/utils.ts": "export function add(a: number, b: number): number { return a + b; }",
@@ -79,11 +80,11 @@ def test_validation_service_import_resolution_and_repair():
         "src/broken.ts": "export function broken() { console.log('hello'); // TODO: fix"
     }
     
-    loop = asyncio.get_event_loop()
-    repaired = loop.run_until_complete(ValidationService.self_repair_loop(flawed_files, max_attempts=2))
+    repaired = await ValidationService.self_repair_loop(flawed_files, max_attempts=2)
     
     assert "src/broken.ts" in repaired
     assert "// TODO:" not in repaired["src/broken.ts"]
+
 
 
 def test_zip_archive_generation():

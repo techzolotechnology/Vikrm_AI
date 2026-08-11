@@ -108,16 +108,29 @@ export function Chat() {
     setShowScrollButton(false);
   };
 
+  const { providerModels, providerList, ollamaOnline, defaultModel } = useProviders();
+  const [selectedProvider, setSelectedProvider] = useState("ollama");
+  const [selectedModel, setSelectedModel] = useState("qwen3:8b");
+
+  useEffect(() => {
+    if (defaultModel) {
+      setSelectedModel(defaultModel);
+    }
+  }, [defaultModel]);
+
   const handleEnsureConversation = async (): Promise<number> => {
     if (activeId !== null) return activeId;
-    const created = await createConversation.mutateAsync({});
+    const created = await createConversation.mutateAsync({
+      provider: selectedProvider,
+      model: selectedModel,
+    });
     setActiveId(created.id);
     return created.id;
   };
 
   const handleCreate = (agentId: number | null) => {
     createConversation.mutate(
-      agentId ? { agent_id: agentId } : {},
+      agentId ? { agent_id: agentId, provider: selectedProvider, model: selectedModel } : { provider: selectedProvider, model: selectedModel },
       {
         onSuccess: (conversation) => {
           setActiveId(conversation.id);
@@ -133,7 +146,7 @@ export function Chat() {
       targetId = await handleEnsureConversation();
     }
     setAutoScroll(true);
-    await sendMessage(content, targetId, attachmentIds);
+    await sendMessage(content, targetId, attachmentIds, selectedModel, selectedProvider);
   };
 
   const handleDelete = (id: number) => {
@@ -156,10 +169,6 @@ export function Chat() {
   };
 
   const isEmpty = activeId === null || (localMessages || []).length === 0;
-
-  const { providerModels, providerList, ollamaOnline } = useProviders();
-  const [selectedProvider, setSelectedProvider] = useState("ollama");
-  const [selectedModel, setSelectedModel] = useState("qwen3:8b");
 
   useEffect(() => {
     if (providerList.length > 0 && !providerList.includes(selectedProvider)) {

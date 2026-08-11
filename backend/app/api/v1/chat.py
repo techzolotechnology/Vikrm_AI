@@ -171,8 +171,8 @@ async def stream_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     logger.info(
-        "[stream_message] conversation=%s provider=%s model=%s user=%s",
-        conversation_id, conversation.provider, conversation.model, user.id,
+        "[stream_message] conversation=%s req_provider=%s req_model=%s conv_provider=%s conv_model=%s user=%s",
+        conversation_id, body.provider, body.model, conversation.provider, conversation.model, user.id,
     )
 
     async def event_stream():
@@ -181,6 +181,8 @@ async def stream_message(
                 conversation=conversation,
                 user_content=body.content,
                 attachment_ids=body.attachment_ids,
+                request_provider=body.provider,
+                request_model=body.model,
             ):
                 norm_chunk = normalize_content_chunk(chunk)
                 if norm_chunk:

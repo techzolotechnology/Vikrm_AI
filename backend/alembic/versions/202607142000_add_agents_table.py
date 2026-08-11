@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.Column("goal", sa.Text(), nullable=True),
         sa.Column("personality", sa.Text(), nullable=True),
         sa.Column("provider", sa.String(50), nullable=False, server_default="ollama"),
-        sa.Column("model", sa.String(100), nullable=False, server_default="llama3.2"),
+        sa.Column("model", sa.String(100), nullable=False, server_default="qwen3:8b"),
         sa.Column("temperature", sa.Float(), nullable=False, server_default="0.7"),
         sa.Column("max_tokens", sa.Integer(), nullable=False, server_default="2048"),
         sa.Column(

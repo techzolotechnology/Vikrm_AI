@@ -220,7 +220,13 @@ export function useChatStream(conversationId: number | null) {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, targetConversationId?: number, attachmentIds?: number[]) => {
+    async (
+      content: string,
+      targetConversationId?: number,
+      attachmentIds?: number[],
+      model?: string,
+      provider?: string,
+    ) => {
       const targetId = targetConversationId ?? conversationId;
       if (targetId === null) return;
       setError(null);
@@ -258,7 +264,7 @@ export function useChatStream(conversationId: number | null) {
       try {
         for await (const event of streamSSE(
           `/conversations/${targetId}/messages/stream`,
-          { content, attachment_ids: attachmentIds },
+          { content, attachment_ids: attachmentIds, model, provider },
           controller.signal,
         )) {
           if (event.error) {

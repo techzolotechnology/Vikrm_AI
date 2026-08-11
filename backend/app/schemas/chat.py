@@ -73,6 +73,8 @@ class UpdateConversationRequest(BaseModel):
 class SendMessageRequest(BaseModel):
     content: str
     attachment_ids: list[int] | None = None
+    provider: str | None = None
+    model: str | None = None
 
 
 class EditMessageRequest(BaseModel):

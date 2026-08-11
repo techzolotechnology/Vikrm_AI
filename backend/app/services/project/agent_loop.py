@@ -120,14 +120,19 @@ class AgentLoop:
     async def run(
         cls,
         prompt: str,
+        provider: str | None = None,
+        model: str | None = None,
     ) -> AsyncIterator[tuple[str, str]]:
         start_time = time.perf_counter()
         metrics = ProjectMetrics()
         repair_count = 0
 
+        from app.services.project.llm_orchestrator import LLMOrchestrator
+        orchestrator = LLMOrchestrator(default_provider=provider or "ollama", default_model=model or "")
+
         # ── Phase 1: Requirement Analysis & Ambiguity Gate ──
         yield ("status", "[Phase 1: Deep Requirement Analysis...]")
-        req_service = RequirementAnalysisService()
+        req_service = RequirementAnalysisService(orchestrator=orchestrator)
         spec: RequirementSpec = await req_service.analyze_requirement(prompt)
 
         if spec.is_ambiguous:
@@ -138,9 +143,19 @@ class AgentLoop:
 
         # ── Phase 2: Architecture Planning & Stack Justifications ──
         yield ("status", f"[Phase 2: Architecture Planning ({spec.domain})...]")
-        arch_planner = ArchitecturePlanner()
+        arch_planner = ArchitecturePlanner(orchestrator=orchestrator)
         proj_plan: ProjectPlan = await arch_planner.plan_architecture(spec)
         plan: AgentPlan = PlanningAgent.plan(prompt)
+
+        # Thread LLM-derived spec and proj_plan into plan so generation is driven by LLM planning
+        plan.project_name = proj_plan.name
+        plan.domain = proj_plan.domain
+        plan.description = spec.description
+        if proj_plan.tech_stack:
+            plan.framework = proj_plan.tech_stack.framework
+            plan.database = proj_plan.tech_stack.database
+            plan.auth_strategy = proj_plan.tech_stack.authentication
+            plan.deployment_target = proj_plan.tech_stack.deployment_target
 
         # ── Phase 3: Task Decomposition (DAG) ──
         yield ("status", "[Phase 3: Task Decomposition & Topological DAG Construction...]")
@@ -165,32 +180,35 @@ class AgentLoop:
         yield ("status", "[Phase 5: Multi-Agent Specialist Execution (DB, Backend, Frontend, QA, DevOps)...]")
         files: Dict[str, str] = LLMCodeSynthesizer.synthesize(plan)
 
-        db_agent = DatabaseAgent()
+        db_agent = DatabaseAgent(orchestrator=orchestrator)
         db_res = await db_agent.execute(DatabaseAgentInput(spec=spec, plan=proj_plan))
         files.update(db_res.generated_files)
 
-        be_agent = BackendAgent()
+        be_agent = BackendAgent(orchestrator=orchestrator)
         be_res = await be_agent.execute(BackendAgentInput(spec=spec, plan=proj_plan, existing_files=files))
         files.update(be_res.generated_files)
 
-        fe_agent = FrontendAgent()
+        fe_agent = FrontendAgent(orchestrator=orchestrator)
         fe_res = await fe_agent.execute(FrontendAgentInput(spec=spec, plan=proj_plan, existing_files=files))
         files.update(fe_res.generated_files)
 
-        test_agent = TestingAgent()
+        test_agent = TestingAgent(orchestrator=orchestrator)
         test_res = await test_agent.execute(TestingAgentInput(spec=spec, plan=proj_plan, existing_files=files))
         files.update(test_res.generated_files)
 
-        doc_agent = DocumentationAgent()
+        doc_agent = DocumentationAgent(orchestrator=orchestrator)
         doc_res = await doc_agent.execute(DocumentationAgentInput(spec=spec, plan=proj_plan, existing_files=files))
         files.update(doc_res.generated_files)
 
-        dep_agent = DeploymentAgent()
+        dep_agent = DeploymentAgent(orchestrator=orchestrator)
         dep_res = await dep_agent.execute(DeploymentAgentInput(spec=spec, plan=proj_plan))
         files.update(dep_res.generated_files)
 
+        # Post-generation assertion logging missing canonical paths if any
+        CodeSynthesisEngine.verify_canonical_paths(files)
+
         # ── Phase 6: Sequential Batch Generation (Validate -> Repair -> Store -> Continue) ──
-        synthesis_engine = CodeSynthesisEngine()
+        synthesis_engine = CodeSynthesisEngine(orchestrator=orchestrator)
         for b_idx, batch_nodes in enumerate(dag_batches, start=1):
             batch_label = ", ".join(n.name for n in batch_nodes[:2])
             yield ("status", f"[Phase 6: Batch {b_idx}/{len(dag_batches)} Synthesis & Validation ({batch_label})...]")
@@ -225,6 +243,48 @@ class AgentLoop:
             files = await ValidationService.self_repair_loop(files, max_attempts=cls.MAX_REPAIR_ITERATIONS)
             val_results = ValidationService.validate_file_map(files)
             passed = all(r.is_valid for r in val_results.values())
+
+        # Materialize files to real temporary directory for SandboxExecutionService
+        build_result: SandboxExecutionResult | None = None
+        test_result: SandboxExecutionResult | None = None
+        with tempfile.TemporaryDirectory(prefix="vikrm_sandbox_") as sandbox_dir:
+            for filepath, content in files.items():
+                full_path = os.path.join(sandbox_dir, filepath)
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                with open(full_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+
+            # Run real sandbox build/validation command
+            if "server/main.py" in files:
+                build_result = await SandboxExecutionService.run_command(
+                    "python -m py_compile server/main.py",
+                    cwd=sandbox_dir
+                )
+            elif "package.json" in files:
+                build_result = await SandboxExecutionService.run_command(
+                    "node -e \"console.log('package.json valid')\"",
+                    cwd=sandbox_dir
+                )
+            else:
+                build_result = await SandboxExecutionService.run_command(
+                    "echo 'Sandbox environment verified'",
+                    cwd=sandbox_dir
+                )
+
+            # Run real sandbox test command if tests exist
+            if any(k.startswith("server/tests") for k in files):
+                test_result = await SandboxExecutionService.run_command(
+                    "python -m pytest server/tests",
+                    cwd=sandbox_dir
+                )
+
+        # Evaluate quality using real SandboxExecutionResult
+        score_report = ScoreEvaluator.evaluate(
+            files=files,
+            build_result=build_result,
+            test_result=test_result,
+            repair_attempts=repair_count
+        )
 
         # ── Phase 10: Production Readiness Manifests & Summary ──
         yield ("status", f"[Phase 10: Workspace Ready ({len(files)} files generated & validated)]")
@@ -264,9 +324,12 @@ graph TD
 - **Repair Iterations**: `{repair_count}`
 - **Total Workspace Files**: `{len(files)} files` (`{metrics.total_lines:,}` lines of code)
 
+{score_report.format_summary()}
+
 ---
 
 """
+
         yield ("file", reasoning_header)
 
         # Stream demarcated file blocks

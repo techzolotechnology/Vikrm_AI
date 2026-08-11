@@ -10,10 +10,7 @@ from typing import Any, Dict, List
 
 from app.services.datasets.dataset_downloader import DatasetDownloader, SUPPORTED_DATASETS
 from app.services.datasets.dataset_indexer import DatasetIndexer
-try:
-    from vector_db.vector_db_manager import VectorDBManager
-except ImportError:
-    from backend.vector_db.vector_db_manager import VectorDBManager
+from vector_db.vector_db_manager import VectorDBManager
 
 
 logger = logging.getLogger(__name__)

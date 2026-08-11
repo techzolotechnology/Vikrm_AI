@@ -127,9 +127,15 @@ class Settings(BaseSettings):
 
     # --- LLM Providers ---
     OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
+    OLLAMA_HOST: str = "http://127.0.0.1:11434"
     DEFAULT_LLM_PROVIDER: str = "ollama"
     DEFAULT_LLM_MODEL: str = "qwen3:8b"
+    OLLAMA_MODEL: str = ""
     OLLAMA_NUM_CTX: int = 16384
+
+    @property
+    def effective_default_model(self) -> str:
+        return self.OLLAMA_MODEL or self.DEFAULT_LLM_MODEL or "qwen3:8b"
 
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
