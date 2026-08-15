@@ -4,7 +4,6 @@ import JSZip from "jszip";
 import {
   CheckCircle2,
   Download,
-  FolderOpen,
   FileText,
   Layers,
   Cpu,
@@ -13,10 +12,8 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
-  X,
 } from "lucide-react";
 import { ProjectArtifact } from "@/lib/parse-project-artifact";
-import { ProjectWorkspacePanel } from "@/components/workspace/project-workspace-panel";
 
 interface ProjectCompletionCardProps {
   artifact: ProjectArtifact;
@@ -25,7 +22,6 @@ interface ProjectCompletionCardProps {
 export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) {
   const [downloading, setDownloading] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
-  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
 
   const handleDownloadZip = async () => {
     setDownloading(true);
@@ -109,7 +105,7 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
         <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5 border border-border/60">
           <Boxes className="h-4 w-4 text-success shrink-0" />
           <div className="truncate">
-            <span className="text-white/30 block text-[10px]">Total Workspace Files</span>
+            <span className="text-white/30 block text-[10px]">Total Project Files</span>
             <span className="text-white/80 font-semibold">{artifact.files.length} files synthesized</span>
           </div>
         </div>
@@ -132,14 +128,6 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
         >
           <Download className={`h-4 w-4 ${downloading ? "animate-bounce" : ""}`} />
           {downloading ? "Packaging ZIP Archive..." : "📦 Download ZIP"}
-        </button>
-
-        <button
-          onClick={() => setShowWorkspaceModal(true)}
-          className="btn-primary text-xs px-4 py-2"
-        >
-          <FolderOpen className="h-4 w-4" />
-          📂 Open Workspace
         </button>
 
         <button
@@ -169,48 +157,10 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
                 <div>✓ [Planner] Planned {artifact.files.length > 200 ? 279 : artifact.files.length} modules for domain &apos;{artifact.title}&apos;</div>
                 <div>✓ [Synthesizer] Synthesized {artifact.files.length} production files</div>
                 <div>✓ [Validation] ProductionValidator: 0 warnings, zero TODO placeholders</div>
-                <div>✓ [Workspace] Saved workspace context ({artifact.files.length} files)</div>
-                <div className="text-success">✓ [Status] Workspace Ready for Export</div>
+                <div>✓ [Project] Saved project context ({artifact.files.length} files)</div>
+                <div className="text-success">✓ [Status] Files Ready for Export</div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── LAZY-LOADED WORKSPACE MODAL ── */}
-      <AnimatePresence>
-        {showWorkspaceModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="relative flex h-[90vh] w-[95vw] max-w-7xl flex-col glass-card-elevated border border-border overflow-hidden"
-            >
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5 bg-surface/60">
-                <div className="flex items-center gap-2 font-mono text-xs text-white/60">
-                  <FolderOpen className="h-4 w-4 text-primary" />
-                  <span className="font-bold text-white">{projectSlug} Workspace</span>
-                </div>
-                <button
-                  onClick={() => setShowWorkspaceModal(false)}
-                  className="btn-icon text-white/30 hover:text-danger hover:border-danger/30"
-                  title="Close Workspace"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <ProjectWorkspacePanel artifact={artifact} onClose={() => setShowWorkspaceModal(false)} />
-              </div>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

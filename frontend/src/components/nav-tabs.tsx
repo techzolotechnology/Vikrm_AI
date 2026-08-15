@@ -6,7 +6,6 @@ import {
   Brain,
   ChevronLeft,
   ChevronRight,
-  Code2,
   FileText,
   LayoutDashboard,
   MessageSquare,
@@ -26,7 +25,6 @@ import { useAuthStore } from "@/store/use-auth-store";
 
 const TABS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true, adminOnly: false, color: "#7C3AED", shortcut: "G then D" },
-  { to: "/workspace", label: "Code Workspace", icon: Code2, end: false, adminOnly: false, color: "#3B82F6", shortcut: "G then O" },
   { to: "/chat", label: "Chat", icon: MessageSquare, end: false, adminOnly: false, color: "#22D3EE", shortcut: "G then C" },
   { to: "/agents", label: "Agent Studio", icon: Bot, end: false, adminOnly: false, color: "#8B5CF6", shortcut: "G then A" },
   { to: "/teams", label: "Teams", icon: Users, end: false, adminOnly: false, color: "#EC4899", shortcut: "G then T" },
@@ -45,7 +43,6 @@ const BOTTOM_TABS = [
 // Keyboard nav shortcuts map: g → then key
 const NAV_SHORTCUTS: Record<string, string> = {
   d: "/dashboard",
-  o: "/workspace",
   c: "/chat",
   a: "/agents",
   t: "/teams",

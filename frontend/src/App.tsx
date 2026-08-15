@@ -17,7 +17,6 @@ import { ResetPassword } from "@/pages/reset-password";
 
 // ─── Authenticated Pages (lazy loaded for perf) ────────────────────────────
 const Dashboard = lazy(() => import("@/pages/dashboard").then((m) => ({ default: m.Dashboard })));
-const Workspace = lazy(() => import("@/pages/workspace").then((m) => ({ default: m.Workspace })));
 const Chat = lazy(() => import("@/pages/chat").then((m) => ({ default: m.Chat })));
 const Agents = lazy(() => import("@/pages/agents").then((m) => ({ default: m.Agents })));
 const MemoryViewer = lazy(() => import("@/pages/memory").then((m) => ({ default: m.MemoryViewer })));
@@ -99,14 +98,6 @@ function AppShell() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/workspace"
-                element={
-                  <ProtectedRoute>
-                    <Workspace />
                   </ProtectedRoute>
                 }
               />
