@@ -60,7 +60,7 @@ const DEPLOY_TARGETS = [
   { id: "railway", label: "Railway", icon: "⬡", color: "text-violet-400" },
   { id: "render", label: "Render", icon: "●", color: "text-sky-400" },
   { id: "docker", label: "Docker", icon: "🐳", color: "text-blue-400" },
-  { id: "github-pages", label: "GitHub Pages", icon: "⬡", color: "text-slate-200" },
+  { id: "github-pages", label: "GitHub Pages", icon: "⬡", color: "text-white/70" },
 ];
 
 function getLanguageFromPath(path: string): string {
@@ -117,7 +117,7 @@ function MarkdownRenderer({ content }: { content: string }) {
     .replace(/\n/g, "<br/>");
   return (
     <div
-      className="p-6 text-sm text-slate-300 overflow-auto h-full font-sans leading-relaxed"
+      className="p-6 text-sm text-white/60 overflow-auto h-full font-sans leading-relaxed"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -128,10 +128,10 @@ function JsonTreeViewer({ content }: { content: string }) {
   let error = "";
   try { parsed = JSON.parse(content); } catch (e) { error = String(e); }
   const renderValue = (val: unknown, depth = 0): React.ReactElement => {
-    if (val === null) return <span className="text-slate-500">null</span>;
+    if (val === null) return <span className="text-white/30">null</span>;
     if (typeof val === "boolean") return <span className="text-amber-400">{String(val)}</span>;
     if (typeof val === "number") return <span className="text-sky-400">{val}</span>;
-    if (typeof val === "string") return <span className="text-emerald-400">"{val}"</span>;
+    if (typeof val === "string") return <span className="text-success">"{val}"</span>;
     if (Array.isArray(val)) return (
       <span>
         {"["}<div style={{ paddingLeft: `${(depth + 1) * 16}px` }}>
@@ -143,16 +143,16 @@ function JsonTreeViewer({ content }: { content: string }) {
       <span>
         {"{"}<div style={{ paddingLeft: `${(depth + 1) * 16}px` }}>
           {Object.entries(val as Record<string, unknown>).map(([k, v], i, arr) => (
-            <div key={k}><span className="text-indigo-300">"{k}"</span>: {renderValue(v, depth + 1)}{i < arr.length - 1 ? "," : ""}</div>
+            <div key={k}><span className="text-primary/80">"{k}"</span>: {renderValue(v, depth + 1)}{i < arr.length - 1 ? "," : ""}</div>
           ))}
         </div>{"}"}
       </span>
     );
     return <span>{String(val)}</span>;
   };
-  if (error) return <div className="p-4 text-rose-400 font-mono text-xs">{error}</div>;
+  if (error) return <div className="p-4 text-danger font-mono text-xs">{error}</div>;
   return (
-    <div className="p-4 font-mono text-[11px] text-slate-300 overflow-auto h-full leading-relaxed">
+    <div className="p-4 font-mono text-[11px] text-white/60 overflow-auto h-full leading-relaxed">
       {renderValue(parsed)}
     </div>
   );
@@ -427,40 +427,40 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
 
   return (
     <div
-      className={`flex flex-col bg-[#0d1117] border border-slate-800/60 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${
+      className={`flex flex-col bg-background border border-border/60 rounded-xl overflow-hidden shadow-glass transition-all duration-300 ${
         isFullscreen ? "fixed inset-1 z-50" : "h-[750px] my-3"
       }`}
     >
       {/* ═══ TOP TOOLBAR ═══ */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#161b22] border-b border-slate-800/80 select-none shrink-0">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-surface/60 backdrop-blur-xl border-b border-border/80 select-none shrink-0">
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
+            <div className="w-2.5 h-2.5 rounded-full bg-danger/70" />
+            <div className="w-2.5 h-2.5 rounded-full bg-warning/70" />
+            <div className="w-2.5 h-2.5 rounded-full bg-success/70" />
           </div>
-          <Zap className="w-3.5 h-3.5 text-purple-400 fill-purple-400/20" />
-          <span className="font-semibold text-xs text-slate-200">{artifact.title}</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-purple-950/50 text-purple-300 border border-purple-800/40">
+          <Zap className="w-3.5 h-3.5 text-primary fill-primary/20" />
+          <span className="font-semibold text-xs text-white/80">{artifact.title}</span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
             {files.length} files · {artifact.framework ?? "project"}
           </span>
           {unsavedFiles.size > 0 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-950/40 text-amber-400 border border-amber-800/40">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
               {unsavedFiles.size} unsaved
             </span>
           )}
         </div>
 
         {/* Nav Tabs */}
-        <div className="flex items-center bg-slate-950/60 rounded-lg border border-slate-800/60 p-0.5 gap-0.5">
+        <div className="flex items-center bg-background/60 rounded-lg border border-border/60 p-0.5 gap-0.5">
           {navItems.map(({ id, icon: Icon, label }) => (
             <button
               key={id}
               onClick={() => setActiveView(id)}
-              className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-all ${
+              className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-all duration-200 ${
                 activeView === id
-                  ? "bg-purple-600/30 text-purple-200 border border-purple-500/40"
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "bg-primary/20 text-primary border border-primary/30"
+                  : "text-white/30 hover:text-white/70 hover:bg-surface/60"
               }`}
             >
               <Icon className="w-3 h-3" />
@@ -473,25 +473,25 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
         <div className="flex items-center gap-1">
           <button
             onClick={() => { setSplitMode(splitMode === "none" ? "vertical" : "none"); setSplitFile(openTabs[1] ?? null); }}
-            className={`p-1.5 rounded text-xs transition-colors ${splitMode !== "none" ? "text-purple-400 bg-purple-950/40" : "text-slate-500 hover:text-slate-200 hover:bg-slate-800"}`}
+            className={`p-1.5 rounded text-xs transition-colors ${splitMode !== "none" ? "text-primary bg-primary/10" : "text-white/30 hover:text-white hover:bg-surface/60"}`}
             title="Split Editor"
           >
             <Split className="w-3.5 h-3.5" />
           </button>
-          <button onClick={handleSave} className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-slate-800 rounded transition" title="Save (Ctrl+S)">
+          <button onClick={handleSave} className="p-1.5 text-white/30 hover:text-success hover:bg-surface/60 rounded transition-all duration-200" title="Save (Ctrl+S)">
             <Check className="w-3.5 h-3.5" />
           </button>
-          <button onClick={handleCopy} className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded transition" title="Copy">
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          <button onClick={handleCopy} className="p-1.5 text-white/30 hover:text-white hover:bg-surface/60 rounded transition-all duration-200" title="Copy">
+            {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
-          <button onClick={handleDownloadZip} className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded transition" title="Download">
+          <button onClick={handleDownloadZip} className="p-1.5 text-white/30 hover:text-white hover:bg-surface/60 rounded transition-all duration-200" title="Download">
             <Download className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-800 rounded transition">
+          <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 text-white/30 hover:text-white hover:bg-surface/60 rounded transition-all duration-200">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded transition">
+            <button onClick={onClose} className="p-1.5 text-white/30 hover:text-danger hover:bg-danger/10 rounded transition-all duration-200">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -521,8 +521,8 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
           {activeView === "editor" && (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Tab Bar */}
-              <div className="flex items-center justify-between bg-[#161b22]/80 border-b border-slate-800/60 shrink-0">
-                <div className="flex items-center overflow-x-auto scrollbar-none">
+              <div className="flex items-center justify-between bg-surface/40 border-b border-border/60 shrink-0">
+                <div className="flex items-center overflow-x-auto no-scrollbar">
                   {openTabs.map((tab) => {
                     const isActive = activeFile.path === tab.path;
                     const isUnsaved = unsavedFiles.has(tab.path);
@@ -531,17 +531,17 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
                       <div
                         key={tab.path}
                         onClick={() => selectFile(tab)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 border-r border-slate-800/60 text-[11px] font-mono cursor-pointer transition-colors shrink-0 group ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 border-r border-border/60 text-[11px] font-mono cursor-pointer transition-colors shrink-0 group ${
                           isActive
-                            ? "bg-[#0d1117] text-purple-300 border-b-2 border-b-purple-500"
-                            : "text-slate-500 hover:bg-slate-800/40 hover:text-slate-300"
+                            ? "bg-background text-primary border-b-2 border-b-primary"
+                            : "text-white/30 hover:bg-surface/60 hover:text-white/70"
                         }`}
                       >
-                        <FileCode className={`w-3 h-3 shrink-0 ${isActive ? "text-purple-400" : "text-slate-600"}`} />
+                        <FileCode className={`w-3 h-3 shrink-0 ${isActive ? "text-primary" : "text-white/20"}`} />
                         <span className="truncate max-w-[120px]">{fname}</span>
-                        {isUnsaved && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                        {isUnsaved && <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />}
                         {openTabs.length > 1 && (
-                          <button onClick={(e) => closeTab(tab.path, e)} className="opacity-0 group-hover:opacity-100 hover:text-rose-400 rounded">
+                          <button onClick={(e) => closeTab(tab.path, e)} className="opacity-0 group-hover:opacity-100 hover:text-danger rounded transition-all duration-150">
                             <X className="w-3 h-3" />
                           </button>
                         )}
@@ -554,7 +554,7 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
                   <select
                     disabled={aiActionRunning}
                     onChange={(e) => { if (e.target.value) { handleAiAction(e.target.value); e.target.value = ""; } }}
-                    className="bg-[#0d1117] border border-purple-800/50 text-purple-300 text-[11px] font-mono px-2 py-0.5 rounded cursor-pointer hover:border-purple-500 disabled:opacity-50"
+                    className="bg-background border border-primary/30 text-primary text-[11px] font-mono px-2 py-0.5 rounded cursor-pointer hover:border-primary/60 disabled:opacity-50 transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     <option value="">{aiActionRunning ? "⏳ Running..." : "⚡ AI Actions"}</option>
                     {AI_ACTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
@@ -563,11 +563,11 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
               </div>
 
               {/* Breadcrumb */}
-              <div className="flex items-center gap-1 px-3 py-1 bg-[#0d1117] border-b border-slate-800/40 text-[10px] font-mono text-slate-600 shrink-0 overflow-x-auto">
+              <div className="flex items-center gap-1 px-3 py-1 bg-background border-b border-border/40 text-[10px] font-mono text-white/25 shrink-0 overflow-x-auto">
                 {breadcrumbs.map((crumb, i) => (
                   <span key={i} className="flex items-center gap-1">
                     {i > 0 && <ChevronRight className="w-2.5 h-2.5" />}
-                    <span className={i === breadcrumbs.length - 1 ? "text-slate-300 font-semibold" : "hover:text-slate-400 cursor-pointer"}>{crumb}</span>
+                    <span className={i === breadcrumbs.length - 1 ? "text-white/60 font-semibold" : "hover:text-white/40 cursor-pointer"}>{crumb}</span>
                   </span>
                 ))}
               </div>
@@ -576,7 +576,7 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
               <div className={`flex-1 flex overflow-hidden ${splitMode === "horizontal" ? "flex-col" : "flex-row"}`}>
                 {/* Primary Editor */}
                 <div className={`flex flex-col overflow-hidden ${splitMode !== "none" ? "flex-1" : "flex-1"}`}>
-                  <Suspense fallback={<div className="flex-1 flex items-center justify-center text-slate-600 text-sm">Loading editor...</div>}>
+                  <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white/25 text-sm">Loading editor...</div>}>
                     <Editor
                       height="100%"
                       language={activeFile.language || "typescript"}
@@ -589,14 +589,14 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
                 </div>
                 {/* Split Editor */}
                 {splitMode !== "none" && splitFile && (
-                  <div className={`flex flex-col overflow-hidden flex-1 ${splitMode === "vertical" ? "border-l border-slate-800" : "border-t border-slate-800"}`}>
-                    <div className="px-3 py-1 bg-[#161b22] border-b border-slate-800/60 text-[10px] font-mono text-slate-500 flex items-center justify-between">
+                  <div className={`flex flex-col overflow-hidden flex-1 ${splitMode === "vertical" ? "border-l border-border" : "border-t border-border"}`}>
+                    <div className="px-3 py-1 bg-surface/40 border-b border-border/60 text-[10px] font-mono text-white/30 flex items-center justify-between">
                       <span>{splitFile.path}</span>
-                      <select className="bg-transparent text-slate-600 text-[10px] outline-none cursor-pointer" onChange={(e) => { const f = files.find(x => x.path === e.target.value); if (f) setSplitFile(f); }}>
+                      <select className="bg-transparent text-white/25 text-[10px] outline-none cursor-pointer" onChange={(e) => { const f = files.find(x => x.path === e.target.value); if (f) setSplitFile(f); }}>
                         {files.map(f => <option key={f.path} value={f.path}>{f.path}</option>)}
                       </select>
                     </div>
-                    <Suspense fallback={<div className="flex-1 flex items-center justify-center text-slate-600 text-xs">Loading...</div>}>
+                    <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white/25 text-xs">Loading...</div>}>
                       <Editor
                         height="100%"
                         language={splitFile.language}
@@ -611,14 +611,14 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
               </div>
 
               {/* Status Bar */}
-              <div className="flex items-center justify-between px-3 py-0.5 bg-indigo-900/20 border-t border-slate-800/60 text-[10px] font-mono text-slate-600 shrink-0">
+              <div className="flex items-center justify-between px-3 py-0.5 bg-primary/10 border-t border-border/60 text-[10px] font-mono text-white/25 shrink-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-indigo-400">{activeFile.language}</span>
+                  <span className="text-primary">{activeFile.language}</span>
                   <span>{editorContent.split("\n").length} lines</span>
                   <span>{new Blob([editorContent]).size} bytes</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span>{unsavedFiles.size > 0 ? `● ${unsavedFiles.size} unsaved` : "✓ All saved"}</span>
+                  <span className={unsavedFiles.size > 0 ? "text-warning" : "text-success"}>{unsavedFiles.size > 0 ? `● ${unsavedFiles.size} unsaved` : "✓ All saved"}</span>
                   <span>UTF-8</span>
                   <span>LF</span>
                 </div>
@@ -628,13 +628,13 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
 
           {/* ── LIVE PREVIEW ── */}
           {activeView === "preview" && (
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117]">
-              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-800/60 bg-[#161b22] shrink-0">
-                <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[11px] font-mono text-slate-400">Live Preview</span>
+            <div className="flex-1 flex flex-col overflow-hidden bg-background">
+              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/60 bg-surface/40 shrink-0">
+                <Eye className="w-3.5 h-3.5 text-success" />
+                <span className="text-[11px] font-mono text-white/40">Live Preview</span>
                 <div className="flex items-center gap-1.5 ml-auto">
                   {["html", "markdown", "json"].map((mode) => (
-                    <span key={mode} className={`text-[10px] px-2 py-0.5 rounded cursor-pointer border ${previewContent === mode ? "border-emerald-500/50 text-emerald-300 bg-emerald-950/30" : "border-slate-700 text-slate-500 hover:border-slate-600"}`}>
+                    <span key={mode} className={`text-[10px] px-2 py-0.5 rounded cursor-pointer border transition-colors ${previewContent === mode ? "border-success/50 text-success bg-success/10" : "border-border text-white/25 hover:border-border/80"}`}>
                       {mode.toUpperCase()}
                     </span>
                   ))}
@@ -659,15 +659,15 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
 
           {/* ── INTEGRATED TERMINAL ── */}
           {activeView === "terminal" && (
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0e16] font-mono">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800/60 bg-[#0f1622] shrink-0">
+            <div className="flex-1 flex flex-col overflow-hidden bg-background font-mono">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/60 bg-surface/40 shrink-0">
                 <div className="flex items-center gap-2">
-                  <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[11px] text-slate-400">Terminal — bash (workspace sandbox)</span>
+                  <Terminal className="w-3.5 h-3.5 text-success" />
+                  <span className="text-[11px] text-white/40">Terminal — bash (workspace sandbox)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-emerald-400">● Connected</span>
-                  <button onClick={() => setTerminalLines([])} className="text-[10px] text-slate-600 hover:text-slate-400 px-1.5 py-0.5 border border-slate-800 rounded">
+                  <span className="text-[10px] text-success">● Connected</span>
+                  <button onClick={() => setTerminalLines([])} className="text-[10px] text-white/25 hover:text-white/60 px-1.5 py-0.5 border border-border/60 rounded transition-colors">
                     Clear
                   </button>
                 </div>
@@ -675,34 +675,34 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
               <div ref={terminalRef} className="flex-1 overflow-y-auto p-3 space-y-0.5 text-[12px] leading-relaxed">
                 {terminalLines.map((line, i) => (
                   <div key={i} className={
-                    line.type === "ok" ? "text-emerald-400" :
-                    line.type === "err" ? "text-rose-400" :
-                    line.type === "cmd" ? "text-slate-200" :
-                    "text-slate-500"
+                    line.type === "ok" ? "text-success" :
+                    line.type === "err" ? "text-danger" :
+                    line.type === "cmd" ? "text-white/80" :
+                    "text-white/30"
                   }>
                     {line.text}
                   </div>
                 ))}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-indigo-400">$</span>
+                  <span className="text-primary">$</span>
                   <input
                     type="text"
                     value={terminalInput}
                     onChange={(e) => setTerminalInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") runTerminalCommand(terminalInput); }}
                     placeholder="npm run dev, git status, python main.py..."
-                    className="flex-1 bg-transparent outline-none text-slate-200 placeholder-slate-700 caret-indigo-400"
+                    className="flex-1 bg-transparent outline-none text-white/80 placeholder-white/20 caret-primary"
                     autoFocus={activeView === "terminal"}
                   />
                 </div>
               </div>
               {/* Quick command buttons */}
-              <div className="flex flex-wrap gap-1.5 px-3 py-2 border-t border-slate-800/60 bg-[#0f1622] shrink-0">
+              <div className="flex flex-wrap gap-1.5 px-3 py-2 border-t border-border/60 bg-surface/40 shrink-0">
                 {["npm install", "npm run dev", "npm run build", "git status", "git add . && git commit -m 'update'", "docker build ."].map((cmd) => (
                   <button
                     key={cmd}
                     onClick={() => runTerminalCommand(cmd)}
-                    className="text-[10px] px-2 py-0.5 bg-slate-800/60 border border-slate-700/60 text-slate-400 hover:text-slate-200 hover:border-slate-600 rounded font-mono transition-colors"
+                    className="text-[10px] px-2 py-0.5 bg-surface/40 border border-border/60 text-white/30 hover:text-white hover:border-border rounded font-mono transition-colors"
                   >
                     {cmd}
                   </button>
@@ -713,40 +713,40 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
 
           {/* ── GIT PANEL ── */}
           {activeView === "git" && (
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#0d1117] text-sm">
-              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-800/60 bg-[#161b22] shrink-0">
-                <GitBranch className="w-3.5 h-3.5 text-purple-400" />
-                <span className="text-[11px] font-mono text-slate-300">Branch: <strong className="text-purple-300">{gitBranch}</strong></span>
+            <div className="flex-1 flex flex-col overflow-hidden bg-background text-sm">
+              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/60 bg-surface/40 shrink-0">
+                <GitBranch className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-mono text-white/60">Branch: <strong className="text-primary">{gitBranch}</strong></span>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* Commit Form */}
                 <div className="space-y-2">
-                  <div className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Commit Changes</div>
+                  <div className="text-[11px] text-white/25 uppercase tracking-widest font-bold">Commit Changes</div>
                   <textarea
                     value={gitCommitMsg}
                     onChange={(e) => setGitCommitMsg(e.target.value)}
                     placeholder="feat: describe your changes..."
                     rows={3}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg text-[12px] font-mono text-slate-300 px-3 py-2 placeholder-slate-700 focus:outline-none focus:border-indigo-500 resize-none"
+                    className="w-full bg-background border border-border rounded-xl text-[12px] font-mono text-white/70 px-3 py-2 placeholder-white/20 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 resize-none transition-all duration-200"
                   />
                   <div className="flex gap-2">
                     <button onClick={() => { setTerminalLines((p) => [...p, { text: `[${gitBranch}] ${gitCommitMsg || "update project"}`, type: "ok" }]); setGitCommitMsg(""); setActiveView("terminal"); }}
-                      className="flex-1 py-1.5 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-[11px] font-medium rounded-lg hover:bg-indigo-600/50 transition">
+                      className="flex-1 py-1.5 bg-primary/20 border border-primary/40 text-primary text-[11px] font-medium rounded-xl hover:bg-primary/30 transition-all duration-200">
                       ✓ Commit
                     </button>
                     <button onClick={() => runTerminalCommand("git push origin main").then(() => setActiveView("terminal"))}
-                      className="flex-1 py-1.5 bg-slate-800/60 border border-slate-700 text-slate-300 text-[11px] rounded-lg hover:bg-slate-800 transition">
+                      className="flex-1 py-1.5 bg-surface/40 border border-border text-white/60 text-[11px] rounded-xl hover:bg-surface/60 hover:text-white transition-all duration-200">
                       ↑ Push
                     </button>
                   </div>
                 </div>
                 {/* Changed Files */}
                 <div>
-                  <div className="text-[11px] text-slate-500 uppercase tracking-widest font-bold mb-2">Changed Files ({gitStatus.length})</div>
+                  <div className="text-[11px] text-white/25 uppercase tracking-widest font-bold mb-2">Changed Files ({gitStatus.length})</div>
                   {gitStatus.map((item) => (
-                    <div key={item.file} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-slate-800/40 font-mono text-[11px]">
-                      <span className={`w-4 text-center font-bold ${item.status === "M" ? "text-amber-400" : item.status === "A" ? "text-emerald-400" : "text-rose-400"}`}>{item.status}</span>
-                      <span className="text-slate-400">{item.file}</span>
+                    <div key={item.file} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.03] font-mono text-[11px] transition-colors">
+                      <span className={`w-4 text-center font-bold ${item.status === "M" ? "text-warning" : item.status === "A" ? "text-success" : "text-danger"}`}>{item.status}</span>
+                      <span className="text-white/40">{item.file}</span>
                     </div>
                   ))}
                 </div>
@@ -754,7 +754,7 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
                 <div className="grid grid-cols-2 gap-2">
                   {["Revert Last", "Diff View", "Branch: feature/new", "Merge main"].map((action) => (
                     <button key={action} onClick={() => { setTerminalLines((p) => [...p, { text: `$ git ${action.toLowerCase()}`, type: "cmd" }]); setActiveView("terminal"); }}
-                      className="py-1.5 px-3 text-[10px] bg-slate-800/50 border border-slate-700/60 text-slate-400 hover:text-slate-200 rounded-lg transition font-mono">
+                      className="py-1.5 px-3 text-[10px] glass-card border border-border/60 text-white/40 hover:text-white hover:border-border rounded-xl transition-all duration-200 font-mono">
                       {action}
                     </button>
                   ))}
@@ -765,8 +765,8 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
 
           {/* ── DEPLOY PANEL ── */}
           {activeView === "deploy" && (
-            <div className="flex-1 overflow-y-auto bg-[#0d1117] p-4 space-y-4">
-              <div className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">One-Click Deployment</div>
+            <div className="flex-1 overflow-y-auto bg-background p-4 space-y-4">
+              <div className="text-[11px] text-white/25 uppercase tracking-widest font-bold">One-Click Deployment</div>
               <div className="grid grid-cols-2 gap-3">
                 {DEPLOY_TARGETS.map((target) => {
                   const status = deployStatus[target.id];
@@ -775,18 +775,18 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
                       key={target.id}
                       onClick={() => status !== "deploying" && handleDeploy(target.id)}
                       disabled={status === "deploying"}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 text-left ${
                         status === "deployed"
-                          ? "border-emerald-500/40 bg-emerald-950/20"
+                          ? "border-success/40 bg-success/10"
                           : status === "deploying"
-                          ? "border-amber-500/40 bg-amber-950/20 animate-pulse"
-                          : "border-slate-700/60 bg-slate-800/30 hover:border-slate-600 hover:bg-slate-800/50"
+                          ? "border-warning/40 bg-warning/10 animate-pulse"
+                          : "glass-card border-border/60 hover:border-border"
                       }`}
                     >
                       <span className={`text-xl ${target.color}`}>{target.icon}</span>
                       <div>
                         <div className={`text-xs font-semibold ${target.color}`}>{target.label}</div>
-                        <div className="text-[10px] text-slate-600 mt-0.5">
+                        <div className="text-[10px] text-white/25 mt-0.5">
                           {status === "deployed" ? "✓ Deployed" : status === "deploying" ? "Deploying..." : "Click to deploy"}
                         </div>
                       </div>
@@ -796,35 +796,35 @@ export function ProjectWorkspacePanel({ artifact, onClose }: ProjectWorkspacePan
               </div>
 
               {/* 12-Metric Score Report */}
-              <div className="border border-slate-800/60 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-2 px-3 py-2 bg-[#161b22] border-b border-slate-800/60">
-                  <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
-                  <span className="text-[11px] font-bold text-slate-300">12-Metric Production Quality Report</span>
+              <div className="glass-card border border-border/60 overflow-hidden">
+                <div className="flex items-center gap-2 px-3 py-2 bg-surface/40 border-b border-border/60">
+                  <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[11px] font-bold text-white/70">12-Metric Production Quality Report</span>
                 </div>
                 <div className="p-3 grid grid-cols-2 gap-2 text-[11px] font-mono">
                   {[
-                    { label: "Build Status", value: "PASSED", color: "text-emerald-400" },
-                    { label: "Runtime Status", value: "HEALTHY", color: "text-emerald-400" },
-                    { label: "Security Score", value: "96/100", color: "text-sky-400" },
-                    { label: "Performance Score", value: "98/100", color: "text-indigo-400" },
-                    { label: "Accessibility", value: "95/100", color: "text-amber-400" },
-                    { label: "Maintainability", value: "95/100", color: "text-purple-400" },
-                    { label: "Test Coverage", value: "88.5%", color: "text-emerald-400" },
-                    { label: "Bundle Size", value: "142.8 KB", color: "text-sky-400" },
-                    { label: "Architecture", value: "98/100", color: "text-indigo-400" },
-                    { label: "Compilation", value: "100/100", color: "text-emerald-400" },
-                    { label: "Zero TODOs", value: "✓ Verified", color: "text-emerald-400" },
-                    { label: "Zero Broken Imports", value: "✓ Verified", color: "text-emerald-400" },
+                    { label: "Build Status", value: "PASSED", color: "text-success" },
+                    { label: "Runtime Status", value: "HEALTHY", color: "text-success" },
+                    { label: "Security Score", value: "96/100", color: "text-accent" },
+                    { label: "Performance Score", value: "98/100", color: "text-primary" },
+                    { label: "Accessibility", value: "95/100", color: "text-warning" },
+                    { label: "Maintainability", value: "95/100", color: "text-primary" },
+                    { label: "Test Coverage", value: "88.5%", color: "text-success" },
+                    { label: "Bundle Size", value: "142.8 KB", color: "text-accent" },
+                    { label: "Architecture", value: "98/100", color: "text-primary" },
+                    { label: "Compilation", value: "100/100", color: "text-success" },
+                    { label: "Zero TODOs", value: "✓ Verified", color: "text-success" },
+                    { label: "Zero Broken Imports", value: "✓ Verified", color: "text-success" },
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
-                      <span className="text-slate-500">{label}</span>
+                    <div key={label} className="flex justify-between items-center py-0.5 border-b border-border/40">
+                      <span className="text-white/30">{label}</span>
                       <span className={`font-semibold ${color}`}>{value}</span>
                     </div>
                   ))}
                 </div>
-                <div className="px-3 py-2 bg-indigo-950/20 border-t border-slate-800/60 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-bold">Overall Production Readiness</span>
-                  <span className="text-emerald-400 font-bold text-sm font-mono">98/100 ✓ COMPLETE</span>
+                <div className="px-3 py-2 bg-primary/10 border-t border-border/60 flex items-center justify-between">
+                  <span className="text-[11px] text-white/50 font-bold">Overall Production Readiness</span>
+                  <span className="text-success font-bold text-sm font-mono">98/100 ✓ COMPLETE</span>
                 </div>
               </div>
             </div>
