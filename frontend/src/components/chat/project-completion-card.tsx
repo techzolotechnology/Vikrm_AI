@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import JSZip from "jszip";
 import {
   CheckCircle2,
@@ -12,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  X,
 } from "lucide-react";
 import { ProjectArtifact } from "@/lib/parse-project-artifact";
 import { ProjectWorkspacePanel } from "@/components/workspace/project-workspace-panel";
@@ -55,32 +57,32 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
   const projectSlug = (artifact.title || "generated-project").toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className="my-4 rounded-xl border border-indigo-500/30 bg-gradient-to-br from-[#0d1117] via-[#161b22] to-[#0d1117] p-5 shadow-2xl backdrop-blur-md transition-all">
+    <div className="my-4 glass-card border border-primary/20 p-5 transition-all duration-300">
       {/* ── CARD HEADER ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-inner">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-success/10 border border-success/30 text-success">
             <CheckCircle2 className="h-5 w-5 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-emerald-400">
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-success">
                 ✓ Project Generated Successfully
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-mono text-indigo-300 border border-indigo-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-mono text-primary border border-primary/20">
                 <Sparkles className="h-2.5 w-2.5" /> Claude Code Engine
               </span>
             </div>
-            <h3 className="font-mono text-base font-bold text-slate-100">{projectSlug}</h3>
+            <h3 className="font-display font-mono text-base font-bold text-white mt-0.5">{projectSlug}</h3>
           </div>
         </div>
 
         {/* Status Pills */}
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="rounded-md bg-emerald-950/40 px-2.5 py-1 text-emerald-400 border border-emerald-800/50">
+          <span className="badge-success px-2.5 py-1 rounded-lg text-xs">
             Build: <strong className="font-bold">PASSED</strong>
           </span>
-          <span className="rounded-md bg-purple-950/40 px-2.5 py-1 text-purple-300 border border-purple-800/50">
+          <span className="badge-primary px-2.5 py-1 rounded-lg text-xs">
             Validation: <strong className="font-bold">PASSED</strong>
           </span>
         </div>
@@ -88,35 +90,35 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
 
       {/* ── METADATA GRID ── */}
       <div className="my-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-        <div className="flex items-center gap-2 rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/60">
-          <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5 border border-border/60">
+          <Cpu className="h-4 w-4 text-primary shrink-0" />
           <div className="truncate">
-            <span className="text-slate-500 block text-[10px]">Framework</span>
-            <span className="text-slate-200 font-semibold">{artifact.framework || "React 19 + TypeScript + FastAPI"}</span>
+            <span className="text-white/30 block text-[10px]">Framework</span>
+            <span className="text-white/80 font-semibold">{artifact.framework || "React 19 + TypeScript + FastAPI"}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/60">
-          <Layers className="h-4 w-4 text-purple-400 shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5 border border-border/60">
+          <Layers className="h-4 w-4 text-accent shrink-0" />
           <div className="truncate">
-            <span className="text-slate-500 block text-[10px]">Technology Stack</span>
-            <span className="text-slate-200 font-semibold">Tailwind CSS, PostgreSQL, Redis, Docker</span>
+            <span className="text-white/30 block text-[10px]">Technology Stack</span>
+            <span className="text-white/80 font-semibold">Tailwind CSS, PostgreSQL, Redis, Docker</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/60">
-          <Boxes className="h-4 w-4 text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5 border border-border/60">
+          <Boxes className="h-4 w-4 text-success shrink-0" />
           <div className="truncate">
-            <span className="text-slate-500 block text-[10px]">Total Workspace Files</span>
-            <span className="text-slate-200 font-semibold">{artifact.files.length} files synthesized</span>
+            <span className="text-white/30 block text-[10px]">Total Workspace Files</span>
+            <span className="text-white/80 font-semibold">{artifact.files.length} files synthesized</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/60">
-          <Terminal className="h-4 w-4 text-cyan-400 shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5 border border-border/60">
+          <Terminal className="h-4 w-4 text-accent shrink-0" />
           <div className="truncate">
-            <span className="text-slate-500 block text-[10px]">Test Coverage</span>
-            <span className="text-slate-200 font-semibold">Vitest + Pytest + Playwright</span>
+            <span className="text-white/30 block text-[10px]">Test Coverage</span>
+            <span className="text-white/80 font-semibold">Vitest + Pytest + Playwright</span>
           </div>
         </div>
       </div>
@@ -126,7 +128,7 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
         <button
           onClick={handleDownloadZip}
           disabled={downloading}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl bg-success px-4 py-2 text-xs font-semibold text-white transition-all hover:opacity-90 hover:shadow-glow-success active:scale-95 disabled:opacity-50"
         >
           <Download className={`h-4 w-4 ${downloading ? "animate-bounce" : ""}`} />
           {downloading ? "Packaging ZIP Archive..." : "📦 Download ZIP"}
@@ -134,7 +136,7 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
 
         <button
           onClick={() => setShowWorkspaceModal(true)}
-          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95"
+          className="btn-primary text-xs px-4 py-2"
         >
           <FolderOpen className="h-4 w-4" />
           📂 Open Workspace
@@ -142,51 +144,76 @@ export function ProjectCompletionCard({ artifact }: ProjectCompletionCardProps) 
 
         <button
           onClick={() => setShowLogs(!showLogs)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-white"
+          className="btn-glass text-xs px-3 py-2"
         >
-          <FileText className="h-3.5 w-3.5 text-slate-400" />
+          <FileText className="h-3.5 w-3.5 text-white/40" />
           📄 View Build Logs
           {showLogs ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
       </div>
 
       {/* ── BUILD LOGS DRAWER ── */}
-      {showLogs && (
-        <div className="mt-4 rounded-lg border border-slate-800 bg-[#090d13] p-3 text-[11px] font-mono text-slate-400 shadow-inner">
-          <div className="mb-2 font-semibold text-slate-300">Synthesis Telemetry Logs:</div>
-          <div className="space-y-1 text-slate-400">
-            <div>✓ [Intent] ResponseMode.ARTIFACT_PROJECT (0.99 Confidence)</div>
-            <div>✓ [Planner] Planned {artifact.files.length > 200 ? 279 : artifact.files.length} modules for domain &apos;{artifact.title}&apos;</div>
-            <div>✓ [Synthesizer] Synthesized {artifact.files.length} production files</div>
-            <div>✓ [Validation] ProductionValidator: 0 warnings, zero TODO placeholders</div>
-            <div>✓ [Workspace] Saved workspace context ({artifact.files.length} files)</div>
-            <div className="text-emerald-400">✓ [Status] Workspace Ready for Export</div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showLogs && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 rounded-xl border border-border/60 bg-background/80 p-3 text-[11px] font-mono text-white/40">
+              <div className="mb-2 font-semibold text-white/60">Synthesis Telemetry Logs:</div>
+              <div className="space-y-1">
+                <div>✓ [Intent] ResponseMode.ARTIFACT_PROJECT (0.99 Confidence)</div>
+                <div>✓ [Planner] Planned {artifact.files.length > 200 ? 279 : artifact.files.length} modules for domain &apos;{artifact.title}&apos;</div>
+                <div>✓ [Synthesizer] Synthesized {artifact.files.length} production files</div>
+                <div>✓ [Validation] ProductionValidator: 0 warnings, zero TODO placeholders</div>
+                <div>✓ [Workspace] Saved workspace context ({artifact.files.length} files)</div>
+                <div className="text-success">✓ [Status] Workspace Ready for Export</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── LAZY-LOADED WORKSPACE MODAL ── */}
-      {showWorkspaceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="relative flex h-[90vh] w-[95vw] max-w-7xl flex-col rounded-2xl border border-slate-800 bg-[#0d1117] shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2.5 bg-[#161b22]">
-              <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
-                <FolderOpen className="h-4 w-4 text-indigo-400" />
-                <span className="font-bold text-white">{projectSlug} Workspace</span>
+      <AnimatePresence>
+        {showWorkspaceModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="relative flex h-[90vh] w-[95vw] max-w-7xl flex-col glass-card-elevated border border-border overflow-hidden"
+            >
+              <div className="flex items-center justify-between border-b border-border px-4 py-2.5 bg-surface/60">
+                <div className="flex items-center gap-2 font-mono text-xs text-white/60">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                  <span className="font-bold text-white">{projectSlug} Workspace</span>
+                </div>
+                <button
+                  onClick={() => setShowWorkspaceModal(false)}
+                  className="btn-icon text-white/30 hover:text-danger hover:border-danger/30"
+                  title="Close Workspace"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowWorkspaceModal(false)}
-                className="rounded-lg px-2.5 py-1 text-xs font-mono text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
-              >
-                ✕ Close Workspace
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <ProjectWorkspacePanel artifact={artifact} onClose={() => setShowWorkspaceModal(false)} />
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex-1 overflow-hidden">
+                <ProjectWorkspacePanel artifact={artifact} onClose={() => setShowWorkspaceModal(false)} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -37,7 +37,7 @@ function getCategoryIcon(name: string) {
 }
 
 export function Tools() {
-  const { data: tools = [] } = useToolsList();
+  const { data: tools = [], isLoading: toolsLoading } = useToolsList();
   const { data: history = [] } = useToolExecutionHistory();
   const executeTool = useExecuteTool();
 
@@ -124,7 +124,14 @@ export function Tools() {
 
             {/* Tool List by Category */}
             <div className="glass-card border border-border/70 overflow-hidden">
-              {Object.entries(grouped).length === 0 && (
+              {toolsLoading && (
+                <div className="p-3 space-y-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-12 skeleton rounded-xl" />
+                  ))}
+                </div>
+              )}
+              {!toolsLoading && Object.entries(grouped).length === 0 && (
                 <p className="p-6 text-center text-xs text-white/30 font-mono">
                   No tools found.
                 </p>
