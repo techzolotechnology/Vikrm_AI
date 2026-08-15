@@ -363,7 +363,6 @@ export function Workspace() {
               </button>
             </div>
           </div>
-        </div>
 
         {/* ─── MAIN CENTER AREA ─────────────────────────────────────────────────── */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
