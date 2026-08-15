@@ -45,7 +45,7 @@ export function parseProjectArtifact(text: string): ProjectArtifact {
     const isProject = markdownFiles.length >= 2 || (markdownFiles.length === 1 && markdownFiles[0].path.includes("/"));
     let summaryText = text.replace(fileBlockRegex, "").trim();
     if (!summaryText) {
-      summaryText = `Generated a complete ${markdownFiles.length}-file application workspace.`;
+      summaryText = `Generated a complete ${markdownFiles.length}-file application project.`;
     }
 
     let title = "Generated Project";
