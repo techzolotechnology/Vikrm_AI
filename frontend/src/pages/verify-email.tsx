@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, Sparkles } from "lucide-react";
 
 import { useVerifyEmail } from "@/hooks/use-auth";
+import { ZyntrixLogo } from "@/components/logo";
 
 export function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -44,8 +45,8 @@ export function VerifyEmail() {
         <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl bg-gradient-brand" />
 
         {/* Logo */}
-        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand font-display text-lg font-bold text-white">
-          V
+        <div className="mb-6 flex justify-center">
+          <ZyntrixLogo size="lg" showTagline={true} />
         </div>
 
         {status === "loading" && (
@@ -75,7 +76,7 @@ export function VerifyEmail() {
               className="btn-primary w-full mt-2"
             >
               <Sparkles className="h-4 w-4" />
-              Sign In to Vikrm
+              Sign In to Zyntrix
             </motion.button>
           </motion.div>
         )}

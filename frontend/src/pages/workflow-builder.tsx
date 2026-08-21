@@ -270,7 +270,7 @@ function BuilderCanvas({ workflowId }: { workflowId: number }) {
   const onDrop = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
-      const nodeType = event.dataTransfer.getData("application/vikrm-node-type") as WorkflowNodeType;
+      const nodeType = event.dataTransfer.getData("application/zyntrix-node-type") as WorkflowNodeType;
       if (!nodeType) return;
 
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });

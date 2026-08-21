@@ -1,5 +1,5 @@
 /**
- * Project Artifact Parser for Vikrm AI Platform.
+ * Project Artifact Parser for Zyntrix AI Platform.
  * Parses markdown response streams containing file headers (### path/to/file.ext)
  * into a structured ProjectArtifact object.
  */

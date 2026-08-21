@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import { useGoogleSignIn } from "@/hooks/use-auth";
+import { ZyntrixLogo } from "@/components/logo";
 
 export function Login() {
   const navigate = useNavigate();
@@ -23,12 +24,12 @@ export function Login() {
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="glass-card w-full max-w-sm p-8 text-center"
       >
-        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand font-display text-lg font-bold text-white">
-          V
+        <div className="mb-6 flex justify-center">
+          <ZyntrixLogo size="lg" showTagline={true} />
         </div>
-        <h1 className="font-display text-2xl font-semibold text-white">Sign in to Vikrm</h1>
+        <h1 className="font-display text-xl font-semibold text-white mt-2">Sign in to Zyntrix</h1>
         <p className="mt-2 text-sm text-white/50">
-          Local-first AI agent automation platform.
+          Privacy-first AI agent automation platform.
         </p>
 
         <div className="mt-8 flex justify-center">

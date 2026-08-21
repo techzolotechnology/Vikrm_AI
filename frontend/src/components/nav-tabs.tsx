@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { CommandPalette } from "@/components/command-palette";
+import { ZyntrixLogo } from "@/components/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
@@ -208,31 +209,15 @@ export function NavTabs({ onExpandChange }: NavTabsProps) {
         className="sidebar"
       >
         {/* Logo */}
-        <div className="flex h-14 shrink-0 items-center px-4 border-b border-white/5">
-          <motion.div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-brand font-display text-sm font-bold text-white shadow-glow-sm cursor-pointer"
-            whileHover={{ scale: 1.08, rotate: 3 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/dashboard")}
-            title="Vikrm AI"
-          >
-            V
-          </motion.div>
-          <AnimatePresence>
-            {expanded && (
-              <motion.div
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                transition={{ duration: 0.2 }}
-                className="ml-3 whitespace-nowrap"
-              >
-                <div className="font-display text-sm font-bold text-white leading-tight">Vikrm AI</div>
-                <div className="font-mono text-[9px] text-white/30 uppercase tracking-wider">Intelligence Platform</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex h-14 shrink-0 items-center px-3.5 border-b border-white/5 cursor-pointer"
+          onClick={() => navigate("/dashboard")}
+          title="Zyntrix AI"
+        >
+          <ZyntrixLogo size="sm" showText={expanded} showTagline={expanded} />
+        </motion.div>
 
         {/* Search / Command Palette */}
         <div className="px-3 py-3 border-b border-white/5">

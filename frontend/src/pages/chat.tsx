@@ -243,7 +243,7 @@ export function Chat() {
               </div>
               <div>
                 <h2 className="font-display text-sm font-bold text-white leading-tight">
-                  {activeConversation?.title ?? "Vikrm AI Assistant"}
+                  {activeConversation?.title ?? "Zyntrix AI Assistant"}
                 </h2>
                 <div className="flex items-center gap-2 mt-0.5">
                   <select
@@ -354,7 +354,7 @@ export function Chat() {
                       How can I help you today?
                     </h2>
                     <p className="text-sm text-white/50 leading-relaxed mb-8 max-w-lg">
-                      Vikrm AI combines deep reasoning, long-term memory, document knowledge, and multi-agent orchestration.
+                      Zyntrix AI combines deep reasoning, long-term memory, document knowledge, and multi-agent orchestration.
                     </p>
 
                     {/* Suggestion Cards */}

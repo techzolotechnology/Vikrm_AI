@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { useGoogleSignIn, useEmailSignIn, useEmailRegister, useForgotPassword } from "@/hooks/use-auth";
+import { ZyntrixLogo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -243,7 +244,7 @@ function parseAuthError(err: unknown): string {
     return axiosErr.response.data.detail;
   }
   if (axiosErr?.code === "ERR_NETWORK" || !axiosErr?.response) {
-    return "Cannot connect to Vikrm backend API. Please verify backend server status.";
+    return "Cannot connect to Zyntrix backend API. Please verify backend server status.";
   }
   return axiosErr?.message ?? "Authentication failed. Please try again.";
 }
@@ -760,7 +761,7 @@ const TITLES: Record<View, string> = {
 };
 
 const SUBTITLES: Record<View, string> = {
-  signin: "Sign in to your Vikrm workspace",
+  signin: "Sign in to your Zyntrix workspace",
   register: "Join the AI automation platform",
   forgot: "We'll help you recover access",
 };
@@ -818,10 +819,7 @@ export function AuthModal({ defaultView = "signin", onClose }: AuthModalProps) {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-brand font-display text-sm font-bold text-white">
-                  V
-                  <div className="absolute inset-0 rounded-xl bg-gradient-brand opacity-40 blur-lg" />
-                </div>
+                <ZyntrixLogo size="md" showText={false} />
                 <div>
                   <h2 className="font-display text-lg font-semibold text-white">
                     {TITLES[view]}

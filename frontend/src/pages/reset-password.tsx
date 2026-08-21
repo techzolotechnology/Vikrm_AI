@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 
 import { useResetPassword } from "@/hooks/use-auth";
+import { ZyntrixLogo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 const PASSWORD_RULES = [
@@ -84,9 +85,7 @@ export function ResetPassword() {
 
         {/* Logo */}
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-brand font-display text-sm font-bold text-white">
-            V
-          </div>
+          <ZyntrixLogo size="md" showText={false} />
           <div>
             <h1 className="font-display text-lg font-semibold text-white">Reset Password</h1>
             <p className="text-xs text-white/40">Create a new secure password</p>

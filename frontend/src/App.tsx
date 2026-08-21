@@ -199,7 +199,7 @@ export default function App() {
   const content = (
     <BrowserRouter>
       <ToastProvider>
-        <ErrorBoundary fallbackTitle="Vikrm AI Platform Error">
+        <ErrorBoundary fallbackTitle="Zyntrix AI Platform Error">
           <AppShell />
         </ErrorBoundary>
       </ToastProvider>

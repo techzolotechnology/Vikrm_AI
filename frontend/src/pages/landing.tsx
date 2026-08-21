@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { AuthModal } from "@/components/auth-modal";
+import { ZyntrixLogo } from "@/components/logo";
 import { useAuthStore } from "@/store/use-auth-store";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -283,7 +284,7 @@ const USE_CASES: UseCase[] = [
 
 const TESTIMONIALS: Testimonial[] = [
   {
-    quote: "Vikrm completely transformed our engineering workflow. Running agents with full privacy means our IP never touches third-party clouds.",
+    quote: "Zyntrix completely transformed our engineering workflow. Running agents with full privacy means our IP never touches third-party clouds.",
     author: "Elena Rostova",
     role: "VP of Engineering",
     company: "Apex Systems",
@@ -299,7 +300,7 @@ const TESTIMONIALS: Testimonial[] = [
     stars: 5,
   },
   {
-    quote: "The combination of semantic memory search, intelligent tool use, and zero telemetry makes Vikrm an absolute staple in our security stack.",
+    quote: "The combination of semantic memory search, intelligent tool use, and zero telemetry makes Zyntrix an absolute staple in our security stack.",
     author: "Sophia Chen",
     role: "Principal Security Engineer",
     company: "Vanguard Tech",
@@ -310,12 +311,12 @@ const TESTIMONIALS: Testimonial[] = [
 
 const FAQS: FAQItem[] = [
   {
-    question: "Is my data completely private when using Vikrm?",
-    answer: "Yes, 100%. Vikrm is privacy-first by design. When deployed on your own infrastructure, all conversation data, document indexes, and memory entries remain exclusively on your hardware or private server. Nothing is shared externally.",
+    question: "Is my data completely private when using Zyntrix?",
+    answer: "Yes, 100%. Zyntrix is privacy-first by design. When deployed on your own infrastructure, all conversation data, document indexes, and memory entries remain exclusively on your hardware or private server. Nothing is shared externally.",
   },
   {
     question: "Can I connect different AI models?",
-    answer: "Absolutely. Vikrm's modular intelligence layer supports seamless switching between local and cloud-based AI models from various providers. One platform gives you the flexibility to use any model that fits your needs.",
+    answer: "Absolutely. Zyntrix's modular intelligence layer supports seamless switching between local and cloud-based AI models from various providers. One platform gives you the flexibility to use any model that fits your needs.",
   },
   {
     question: "How does Multi-Agent Orchestration work?",
@@ -323,11 +324,11 @@ const FAQS: FAQItem[] = [
   },
   {
     question: "What document formats are supported?",
-    answer: "Vikrm natively processes text files, PDFs, Word documents, Markdown, and CSV files. The platform uses intelligent chunking to preserve semantic context and enable precise knowledge retrieval.",
+    answer: "Zyntrix natively processes text files, PDFs, Word documents, Markdown, and CSV files. The platform uses intelligent chunking to preserve semantic context and enable precise knowledge retrieval.",
   },
   {
-    question: "How do I deploy Vikrm for my organization?",
-    answer: "Vikrm comes with production-ready deployment configurations that support full on-premises installation. The setup is designed for easy deployment by your infrastructure team with minimal configuration.",
+    question: "How do I deploy Zyntrix for my organization?",
+    answer: "Zyntrix comes with production-ready deployment configurations that support full on-premises installation. The setup is designed for easy deployment by your infrastructure team with minimal configuration.",
   },
 ];
 
@@ -492,7 +493,7 @@ function DashboardPreview() {
           <div className="h-2.5 w-2.5 rounded-full bg-success/60" />
         </div>
         <div className="flex h-5 items-center rounded bg-white/5 px-3 text-[10px] text-white/40 font-mono">
-          Vikrm Intelligence Platform
+          Zyntrix Intelligence Platform
         </div>
       </div>
       {/* Mock content */}
@@ -631,12 +632,9 @@ export function Landing() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
+          title="Zyntrix AI"
         >
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-brand font-display text-base font-bold text-white shadow-lg">
-            <span>V</span>
-            <div className="absolute inset-0 rounded-xl bg-gradient-brand opacity-50 blur-lg" />
-          </div>
-          <span className="font-display text-xl font-bold text-white tracking-tight">Vikrm</span>
+          <ZyntrixLogo size="md" showTagline={false} />
         </motion.div>
 
         {/* Center nav */}
@@ -729,7 +727,7 @@ export function Landing() {
             transition={{ duration: 0.7, delay: 0.25 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-white/60 leading-relaxed font-normal"
           >
-            Vikrm is the premium AI automation platform built for organizations that demand performance, 
+            Zyntrix is the premium AI automation platform built for organizations that demand performance, 
             privacy, and complete control. Build custom agents, compose visual workflows, and 
             connect your private knowledge — all on your infrastructure.
           </motion.p>
@@ -815,7 +813,7 @@ export function Landing() {
               A Complete <span className="gradient-text">AI Intelligence Platform</span>
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-white/60">
-              Vikrm provides every core capability required to create, deploy, and scale intelligent AI applications — without compromise.
+              Zyntrix provides every core capability required to create, deploy, and scale intelligent AI applications — without compromise.
             </p>
           </motion.div>
 
@@ -1249,10 +1247,7 @@ export function Landing() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-brand font-display text-sm font-bold text-white shadow-md">
-                  V
-                </div>
-                <span className="font-display text-lg font-bold text-white">Vikrm</span>
+                <ZyntrixLogo size="md" showTagline={false} />
               </div>
               <p className="text-xs text-white/40 leading-relaxed max-w-xs">
                 Privacy-first AI Agent Automation Platform. Build, execute, and scale with complete data sovereignty.
@@ -1282,7 +1277,7 @@ export function Landing() {
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-white/[0.06] pt-8">
             <p className="text-xs text-white/30 font-mono">
-              © 2026 Vikrm AI Platform. All rights reserved.
+              © 2026 Zyntrix AI Platform. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white transition-colors">

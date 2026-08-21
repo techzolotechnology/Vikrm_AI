@@ -43,7 +43,7 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
       <div className="flex flex-col items-center gap-2 py-10 text-center">
         <Circle className="h-8 w-8 text-white/15" strokeWidth={1} />
         <p className="text-xs text-white/30">Activity stream is quiet.</p>
-        <p className="text-[11px] text-white/20">Events will appear here as you use Vikrm.</p>
+        <p className="text-[11px] text-white/20">Events will appear here as you use Zyntrix.</p>
       </div>
     );
   }

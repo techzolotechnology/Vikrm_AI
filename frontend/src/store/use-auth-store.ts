@@ -39,6 +39,6 @@ export const useAuthStore = create<AuthState>()(
       clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
       isAuthenticated: () => get().accessToken !== null && get().user !== null,
     }),
-    { name: "vikrm-auth" },
+    { name: "zyntrix-auth" },
   ),
 );

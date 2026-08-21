@@ -320,7 +320,7 @@ export function Composer({ onSend, disabled, conversationId, onEnsureConversatio
           onChange={(e) => { setValue(e.target.value); handleInput(); }}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder="Message Vikrm AI... (Enter to send, Shift+Enter for newline, paste files directly)"
+          placeholder="Message Zyntrix AI... (Enter to send, Shift+Enter for newline, paste files directly)"
           rows={1}
           disabled={disabled}
           className="max-h-48 min-h-[48px] flex-1 resize-none bg-transparent px-4 pt-3.5 pb-3 text-sm text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50"

@@ -70,7 +70,7 @@ export function NodePalette() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const handleDragStart = (event: DragEvent, nodeType: WorkflowNodeType) => {
-    event.dataTransfer.setData("application/vikrm-node-type", nodeType);
+    event.dataTransfer.setData("application/zyntrix-node-type", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 

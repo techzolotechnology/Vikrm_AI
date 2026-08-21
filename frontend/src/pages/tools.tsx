@@ -228,7 +228,7 @@ export function Tools() {
                       }}
                       placeholder={
                         selectedTool === "python_executor"
-                          ? "print('Hello from Vikrm Python Sandbox')"
+                          ? "print('Hello from Zyntrix Python Sandbox')"
                           : selectedTool === "calculator"
                             ? "2 + 2 * 10"
                             : "Enter tool input parameters..."

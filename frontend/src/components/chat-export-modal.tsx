@@ -161,7 +161,7 @@ export function ChatExportModal({
               >
                 <Upload className="h-8 w-8 text-primary mb-2" />
                 <span className="text-xs font-semibold text-white/80">Click to select JSON file</span>
-                <span className="text-[10px] text-white/30 mt-1">Supports Vikrm Chat export format</span>
+                <span className="text-[10px] text-white/30 mt-1">Supports Zyntrix Chat export format</span>
               </div>
 
               {importError && (

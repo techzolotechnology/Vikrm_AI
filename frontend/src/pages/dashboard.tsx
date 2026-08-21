@@ -444,7 +444,7 @@ export function Dashboard() {
               <CheckCircle2 className="h-3 w-3 text-success/50" />
               <span>All systems operational</span>
             </div>
-            <span>Vikrm Intelligence Platform</span>
+            <span>Zyntrix Intelligence Platform</span>
           </div>
         </div>
       </div>
